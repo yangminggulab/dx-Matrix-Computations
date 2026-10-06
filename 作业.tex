@@ -1,0 +1,505 @@
+% 所有作业在此追加，每次一个 section，进入下一教材章后换章分组。
+% 现有两份作业入口属于同一次作业，不重复计入。
+\begingroup
+\chapter*{第一章作业：线性代数基础}
+\addcontentsline{toc}{chapter}{第一章作业：线性代数基础}
+\markboth{第一章作业：线性代数基础}{第一章作业：线性代数基础}
+\setcounter{section}{0}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thechapter}{1}
+\renewcommand{\theHsection}{homework.linear-algebra.\arabic{section}}
+
+\section{第一次作业（2026年9月27日）}
+\label{hw:linear-algebra:first}
+\noindent 共九题，其中第九题为选做。保留已有题干、完整解答和东邪的 tip，并补录原作业指定页码与提示。
+教材页码采用作业课件的页码；条目编号采用教材原编号。
+
+\begin{introduction}[这一章在做什么]
+  \item 空间部分：用“交集只有零向量”判断直和。
+  \item 秩部分：把矩阵乘积看成限制在子空间上的线性映射。
+  \item 投影部分：先证坐标矩阵可逆，再验证值域与零空间。
+  \item 范数部分：基本方法是先放大，再按定义取上确界。
+\end{introduction}
+
+\subsection*{线性空间与矩阵的秩}
+
+\begin{homework}[第 1 题：定理 1.5]
+\par\smallskip\textsf{来源：潘建瑜讲义第 8 页。}
+原题提示：利用教材定理 1.3(3)，证明两个子空间的交集只有零向量。\par\smallskip
+
+设 $S_1,S_2$ 是内积空间 $S$ 的两个子空间。若
+\[
+S_1\perp S_2,
+\]
+证明 $S_1+S_2$ 是直和。
+\end{homework}
+
+\begin{solution}
+根据直和的判定定理，只需证明
+\[
+S_1\cap S_2=\{0\}.
+\]
+任取 $x\in S_1\cap S_2$。因为 $x\in S_1$ 且 $x\in S_2$，由 $S_1\perp S_2$ 可得
+\[
+(x,x)=0.
+\]
+内积正定性给出 $x=0$。因此 $S_1\cap S_2$ 中只有零向量，即
+\[
+S_1\cap S_2=\{0\}.
+\]
+所以 $S_1+S_2$ 是直和，记为 $S_1\oplus S_2$。
+\end{solution}
+
+\begin{dxtips}[直和的最短思路]\label{hw:matrix:tip1}
+直和看交集，正交看内积。把同一个 $x$ 同时放进 $S_1$ 和 $S_2$，立即得到 $(x,x)=0$。
+\end{dxtips}
+
+\begin{homework}[第 2 题：Sylvester 秩定理]
+\par\smallskip\textsf{来源：潘建瑜讲义第 9 页。}
+原题说明：此定理也称为 Sylvester 秩定理。\par\smallskip
+
+设 $A\in\R^{m\times k}$，$B\in\R^{k\times n}$。证明
+\[
+\rank(A)+\rank(B)-k
+\le \rank(AB)
+\le \min\{\rank(A),\rank(B)\}.
+\]
+\end{homework}
+
+\begin{solution}
+记 $U=\Ran(B)\subseteq\R^k$，并考虑 $A$ 在 $U$ 上的限制
+\[
+A|_U:U\longrightarrow\R^m.
+\]
+由秩--零度定理，
+\begin{align*}
+\rank(AB)
+&=\dim A(U)\\
+&=\dim U-\dim\bigl(U\cap\Ker(A)\bigr)\\
+&=\rank(B)-\dim\bigl(U\cap\Ker(A)\bigr).
+\end{align*}
+由于 $U\cap\Ker(A)\subseteq\Ker(A)$，且
+\[
+\dim\Ker(A)=k-\rank(A),
+\]
+所以
+\begin{align*}
+\rank(AB)
+&\ge \rank(B)-\dim\Ker(A)\\
+&=\rank(A)+\rank(B)-k.
+\end{align*}
+
+另一方面，$\Ran(AB)\subseteq\Ran(A)$，因此
+\[
+\rank(AB)\le\rank(A).
+\]
+同时 $A(U)$ 是 $U$ 的像，故
+\[
+\rank(AB)=\dim A(U)\le\dim U=\rank(B).
+\]
+合并两个上界，得
+\[
+\rank(AB)\le\min\{\rank(A),\rank(B)\}.
+\]
+\end{solution}
+
+\begin{dxtips}[秩就是像空间的维数]\label{hw:matrix:tip2}
+$B$ 先把向量送到 $U=\Ran(B)$，$A$ 再作用在 $U$ 上。下界的损失量正是 $U\cap\Ker(A)$ 的维数。
+\end{dxtips}
+
+\begin{homework}[第 3 题：例题 1.8]
+\par\smallskip\textsf{来源：潘建瑜讲义第 11 页。}
+原题要求：证明教材例题 1.8 中的像空间与转置核空间关系。\par\smallskip
+
+设 $A\in\R^{m\times n}$。证明
+\[
+\Ran(A)^\perp=\Ker(A^{\mathsf T}).
+\]
+\end{homework}
+
+\begin{solution}
+任取 $y\in\R^m$。我们把“与 $\Ran(A)$ 中每个向量正交”直接翻译成公式：
+\begin{align*}
+y\in\Ran(A)^\perp
+&\iff y^{\mathsf T}(Ax)=0,\quad \forall x\in\R^n\\
+&\iff (A^{\mathsf T}y)^{\mathsf T}x=0,\quad \forall x\in\R^n\\
+&\iff A^{\mathsf T}y=0\\
+&\iff y\in\Ker(A^{\mathsf T}).
+\end{align*}
+因此 $\Ran(A)^\perp=\Ker(A^{\mathsf T})$。
+\end{solution}
+
+\begin{dxtips}[一句话记住]\label{hw:matrix:tip3}
+“与 $A$ 的所有列向量正交”等价于“左乘 $A$ 得到零”，所以自然出现 $A^{\mathsf T}y=0$。
+\end{dxtips}
+
+\subsection*{特征值与投影}
+
+\begin{homework}[第 4 题：Gerschgorin 圆盘定理]
+\par\smallskip\textsf{来源：潘建瑜讲义第 14 页。}
+原题要求：证明教材定理 1.20 的 Gerschgorin 圆盘包含关系。\par\smallskip
+
+设 $A=[a_{ij}]\in\C^{n\times n}$，并定义
+\[
+D_i=\left\{z\in\C:
+|z-a_{ii}|\le\sum_{j\ne i}|a_{ij}|
+\right\}.
+\]
+证明
+\[
+\sigma(A)\subseteq\bigcup_{i=1}^n D_i.
+\]
+\end{homework}
+
+\begin{solution}
+设 $\lambda$ 是 $A$ 的任一特征值，$x\ne0$ 是对应的特征向量，即
+\[
+Ax=\lambda x.
+\]
+取下标 $i$ 使得
+\[
+|x_i|=\|x\|_\infty>0.
+\]
+考虑 $Ax=\lambda x$ 的第 $i$ 个分量：
+\[
+(\lambda-a_{ii})x_i=
+\sum_{j\ne i}a_{ij}x_j.
+\]
+取绝对值并利用 $|x_j|\le |x_i|$，得
+\begin{align*}
+|\lambda-a_{ii}|\,|x_i|
+&\le\sum_{j\ne i}|a_{ij}|\,|x_j|\\
+&\le\left(\sum_{j\ne i}|a_{ij}|\right)|x_i|.
+\end{align*}
+约去 $|x_i|>0$，得
+\[
+|\lambda-a_{ii}|\le\sum_{j\ne i}|a_{ij}|,
+\]
+即 $\lambda\in D_i$。由于 $\lambda$ 是任意特征值，所以
+\[
+\sigma(A)\subseteq\bigcup_{i=1}^nD_i.
+\]
+\end{solution}
+
+\begin{dxtips}[为什么要选最大分量]\label{hw:matrix:tip4}
+选 $|x_i|=\|x\|_\infty$ 后，每个 $|x_j|$ 都能被 $|x_i|$ 放大，最后这个非零量可以整体约掉。
+\end{dxtips}
+
+\begin{homework}[第 5 题：定理 1.29]
+\par\smallskip\textsf{来源：潘建瑜讲义第 18 页。}
+原题提示：参考 Saad 教材第 36--37 页公式 (1.63)--(1.66) 的证明过程，考虑补投影向量 $x-Px$ 与 $S_2$ 正交。\par\smallskip
+
+设 $S_1,S_2$ 是 $\R^n$ 的两个 $m$ 维子空间，且
+\[
+\R^n=S_1\oplus S_2^\perp.
+\]
+设 $P$ 是 $S_1$ 上与 $S_2$ 正交的投影，也就是
+\[
+\Ran(P)=S_1,
+\qquad
+\Ker(P)=S_2^\perp.
+\]
+若
+\[
+V=[v_1,\dots,v_m],\qquad W=[w_1,\dots,w_m]
+\]
+的列向量分别是 $S_1,S_2$ 的一组基，证明
+\[
+P=V(W^{\mathsf T}V)^{-1}W^{\mathsf T}.
+\]
+\end{homework}
+
+\begin{solution}
+先证明 $W^{\mathsf T}V$ 可逆。若
+\[
+W^{\mathsf T}Vc=0,
+\]
+则 $Vc\in S_1$，同时 $Vc$ 与 $W$ 的每一个列向量正交，故 $Vc\in S_2^\perp$。因此
+\[
+Vc\in S_1\cap S_2^\perp=\{0\}.
+\]
+由于 $V$ 列满秩，必有 $c=0$。所以 $W^{\mathsf T}V$ 的零空间只含零向量，它可逆。
+
+现定义
+\[
+\widehat P=V(W^{\mathsf T}V)^{-1}W^{\mathsf T}.
+\]
+对任意 $x\in S_1$，可写成 $x=Vc$，于是
+\[
+\widehat Px
+=V(W^{\mathsf T}V)^{-1}W^{\mathsf T}Vc
+=Vc=x.
+\]
+而对任意 $x\in S_2^\perp$，有 $W^{\mathsf T}x=0$，因而
+\[
+\widehat Px=0.
+\]
+所以 $\widehat P$ 在 $S_1$ 上是恒等映射，在 $S_2^\perp$ 上是零映射。又因为
+\[
+\R^n=S_1\oplus S_2^\perp,
+\]
+这两个性质唯一确定了该投影，故 $\widehat P=P$。即
+\[
+P=V(W^{\mathsf T}V)^{-1}W^{\mathsf T}.
+\]
+\end{solution}
+
+\begin{dxtips}[投影公式怎么记]\label{hw:matrix:tip5}
+$W^{\mathsf T}x$ 先取出与 $S_2$ 基的内积，$(W^{\mathsf T}V)^{-1}$ 把这些量转成 $S_1$ 基下的坐标，最后乘 $V$ 回到原空间。
+\end{dxtips}
+
+\subsection*{向量范数与矩阵范数}
+
+\begin{homework}[第 6 题：定理 1.33]
+\par\smallskip\textsf{来源：潘建瑜讲义第 19 页。}
+原题提示：根据各范数的定义放大或缩小；放大 $1$-范数时使用 Cauchy--Schwarz 不等式，注意讲义注记中的 Cauchy 不等式。\par\smallskip
+
+设 $x\in\R^n$ 或 $x\in\C^n$。证明
+\begin{align*}
+\|x\|_2&\le\|x\|_1\le\sqrt n\,\|x\|_2,\\
+\|x\|_\infty&\le\|x\|_1\le n\|x\|_\infty,\\
+\|x\|_\infty&\le\|x\|_2\le\sqrt n\,\|x\|_\infty.
+\end{align*}
+\end{homework}
+
+\begin{solution}
+首先，
+\[
+\|x\|_1^2
+=\left(\sum_{i=1}^n|x_i|\right)^2
+\ge\sum_{i=1}^n|x_i|^2
+=\|x\|_2^2,
+\]
+所以 $\|x\|_2\le\|x\|_1$。由 Cauchy--Schwarz 不等式，
+\[
+\|x\|_1
+=\sum_{i=1}^n|x_i|\cdot1
+\le
+\left(\sum_{i=1}^n|x_i|^2\right)^{1/2}
+\left(\sum_{i=1}^n1^2\right)^{1/2}
+=\sqrt n\,\|x\|_2.
+\]
+因此第一组不等式成立。
+
+根据最大值的定义，
+\[
+\|x\|_\infty=\max_i|x_i|
+\le\sum_{i=1}^n|x_i|=\|x\|_1,
+\]
+而且每个 $|x_i|\le\|x\|_\infty$，所以
+\[
+\|x\|_1=\sum_{i=1}^n|x_i|
+\le n\|x\|_\infty.
+\]
+这给出第二组不等式。
+
+最后，对任意 $i$ 都有
+\[
+|x_i|^2\le\sum_{j=1}^n|x_j|^2,
+\]
+因此 $\|x\|_\infty\le\|x\|_2$。另一方面，
+\[
+\|x\|_2^2
+=\sum_{i=1}^n|x_i|^2
+\le\sum_{i=1}^n\|x\|_\infty^2
+=n\|x\|_\infty^2,
+\]
+所以 $\|x\|_2\le\sqrt n\,\|x\|_\infty$。
+\end{solution}
+
+\begin{dxtips}[范数放缩的两个动作]\label{hw:matrix:tip6}
+要么用 $|x_i|\le\|x\|_\infty$ 把每一项放大，要么用 Cauchy--Schwarz 把求和变成两个二范数的乘积。
+\end{dxtips}
+
+\begin{homework}[第 7 题：Cauchy--Schwarz 不等式]
+\par\smallskip\textsf{来源：潘建瑜讲义第 21 页。}
+原题说明：注意讲义注记中的特殊形式，即 Cauchy 不等式。\par\smallskip
+
+设 $(\cdot,\cdot)$ 是 $\R^n$ 或 $\C^n$ 上的内积。证明对任意 $x,y$，
+\[
+|(x,y)|^2\le(x,x)(y,y),
+\]
+且等号成立当且仅当 $x,y$ 线性相关。
+\end{homework}
+
+\begin{solution}
+若 $y=0$，则不等式两边都为零，结论显然成立。
+
+下面设 $y\ne0$，并令
+\[
+\alpha=\frac{(x,y)}{(y,y)},
+\qquad
+z=x-\alpha y.
+\]
+则 $(z,y)=0$，即 $z\perp y$。因此 $x=\alpha y+z$ 是正交分解，由勾股关系，
+\begin{align*}
+(x,x)
+&=|\alpha|^2(y,y)+(z,z)\\
+&\ge |\alpha|^2(y,y)\\
+&=\frac{|(x,y)|^2}{(y,y)}.
+\end{align*}
+两边乘以 $(y,y)>0$，得
+\[
+|(x,y)|^2\le(x,x)(y,y).
+\]
+
+若 $x,y$ 线性相关，直接代入即可验证等号成立。反之，若等号成立，上述分解中必有 $(z,z)=0$，从而 $z=0$。因此 $x=\alpha y$，即 $x,y$ 线性相关。
+\end{solution}
+
+\begin{dxtips}[证明的本质]\label{hw:matrix:tip7}
+把 $x$ 拆成沿 $y$ 的分量和与 $y$ 正交的分量。丢掉后一部分只会让长度变小，这就是不等式的来源。
+\end{dxtips}
+
+\begin{homework}[第 8 题：定理 1.38]
+\par\smallskip\textsf{来源：潘建瑜讲义第 23 页。}
+原题要求：等价性不用证明，只需推导不等式。提示：由矩阵 $2$-范数的定义，使用教材定理 1.33 的向量范数不等式。\par\smallskip
+
+设 $A\in\R^{n\times n}$ 或 $A\in\C^{n\times n}$。根据矩阵二范数的定义和第 6 题中的向量范数不等式，证明
+\begin{align*}
+\frac1{\sqrt n}\|A\|_1
+&\le\|A\|_2\le\sqrt n\,\|A\|_1,\\
+\frac1{\sqrt n}\|A\|_\infty
+&\le\|A\|_2\le\sqrt n\,\|A\|_\infty.
+\end{align*}
+\end{homework}
+
+\begin{solution}
+对任意 $x\ne0$，由向量范数不等式，
+\begin{align*}
+\|Ax\|_2
+&\le\|Ax\|_1\\
+&\le\|A\|_1\|x\|_1\\
+&\le\sqrt n\,\|A\|_1\|x\|_2.
+\end{align*}
+两边除以 $\|x\|_2$，再对 $x\ne0$ 取上确界，得
+\[
+\|A\|_2\le\sqrt n\,\|A\|_1.
+\]
+
+设 $e_j$ 是第 $j$ 个标准基向量。注意 $Ae_j$ 就是 $A$ 的第 $j$ 列，因此
+\begin{align*}
+\|A\|_1
+&=\max_j\|Ae_j\|_1\\
+&\le\sqrt n\max_j\|Ae_j\|_2\\
+&\le\sqrt n\,\|A\|_2.
+\end{align*}
+这等价于
+\[
+\frac1{\sqrt n}\|A\|_1\le\|A\|_2.
+\]
+
+再证无穷范数的上界。对任意 $x\ne0$，
+\begin{align*}
+\|Ax\|_2
+&\le\sqrt n\,\|Ax\|_\infty\\
+&\le\sqrt n\,\|A\|_\infty\|x\|_\infty\\
+&\le\sqrt n\,\|A\|_\infty\|x\|_2.
+\end{align*}
+取上确界得
+\[
+\|A\|_2\le\sqrt n\,\|A\|_\infty.
+\]
+最后利用
+\[
+\|A\|_\infty=\|A^*\|_1,
+\qquad
+\|A^*\|_2=\|A\|_2,
+\]
+以及已证的 $1$ 范数下界，得
+\[
+\|A\|_\infty
+=\|A^*\|_1
+\le\sqrt n\,\|A^*\|_2
+=\sqrt n\,\|A\|_2.
+\]
+所以
+\[
+\frac1{\sqrt n}\|A\|_\infty\le\|A\|_2.
+\]
+\end{solution}
+
+\begin{dxtips}[从向量范数到矩阵范数]\label{hw:matrix:tip8}
+先对固定的 $x$ 放缩 $\|Ax\|$，最后除以 $\|x\|$ 并取上确界。下界则用标准基 $e_j$ 挑出某一列。
+\end{dxtips}
+
+\subsection*{选做：最佳逼近}
+
+\begin{homework}[第 9 题（选做）：定理 1.42]
+\par\smallskip\textsf{来源：潘建瑜讲义第 26 页。}
+原题标注：选做。提示：参阅 Saad 教材第 39 页定理 1.38，或课件截图中的证明。\par\smallskip
+
+设 $S$ 是 $\R^n$ 或 $\C^n$ 的子空间，$z$ 是给定向量。证明最佳逼近问题
+\[
+\min_{x\in S}\|x-z\|_2
+\]
+的唯一解为
+\[
+x^*=P_Sz.
+\]
+\end{homework}
+
+\begin{solution}
+记
+\[
+p=P_Sz,
+\qquad
+r=z-p.
+\]
+正交投影的定义给出 $p\in S$ 且 $r\in S^\perp$。对任意 $x\in S$，有 $x-p\in S$，因此
+\[
+r\perp(x-p).
+\]
+由勾股定理，
+\begin{align*}
+\|z-x\|_2^2
+&=\|r-(x-p)\|_2^2\\
+&=\|r\|_2^2+\|x-p\|_2^2\\
+&\ge\|r\|_2^2\\
+&=\|z-p\|_2^2.
+\end{align*}
+所以 $p=P_Sz$ 的确是最佳逼近。而且等号成立当且仅当
+\[
+\|x-p\|_2=0,
+\]
+也就是 $x=p$。因此解唯一。
+\end{solution}
+
+\begin{dxtips}[几何图像]\label{hw:matrix:tip9}
+$z-p$ 是垂直于 $S$ 的短边，$x-p$ 是子空间内的横边。其他 $z-x$ 都是斜边，所以不可能比 $z-p$ 更短。
+\end{dxtips}
+
+\subsection*{最后要看的}
+\phantomsection
+\addcontentsline{toc}{subsection}{最后要看的}
+
+\begin{itemize}
+  \item 直和：$S_1\cap S_2=\{0\}$。
+  \item 秩：$\rank(T)=\dim\Ran(T)$，同时配合秩--零度定理。
+  \item Gerschgorin：在特征向量中挑绝对值最大的分量。
+  \item 投影：分别验证 $S_1$ 上是恒等、$S_2^\perp$ 上是零。
+  \item 范数：先对向量放缩，再对 $x\ne0$ 取上确界。
+  \item 最佳逼近：用正交分解和勾股定理同时得到最小性与唯一性。
+\end{itemize}
+
+\subsection*{逐题知识点与正文对应}
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{p{0.06\linewidth}p{0.41\linewidth}p{0.40\linewidth}}
+\toprule
+题号 & 核心知识点 & 解题中的作用与正文位置\\
+\midrule
+1 & 正交、正定性、直和判别 & 用交集中的向量检验 $(x,x)=0$；\S1.1。\\
+2 & 秩--零度、映射的限制 & 计算 $A|_{\Ran B}$ 损失的维数；\S1.2。\\
+3 & 像空间、正交补、转置 & 将对全部 $Ax$ 正交转成 $A^{\mathsf T}y=0$；\S1.2。\\
+4 & 特征向量、最大分量 & 选 $|x_i|=\|x\|_\infty$ 控制其余项；\S1.2。\\
+5 & 直和、基、投影唯一性 & 先证 $W^{\mathsf T}V$ 可逆，再检查像与核；\S1.2。\\
+6 & 向量范数、Cauchy 不等式 & 对分量放缩，得到维数相关常数；\S1.3。\\
+7 & 内积正定性、正交分解 & 分离沿 $y$ 的分量，分析等号条件；\S1.3。\\
+8 & 算子范数、标准基、共轭转置 & 从向量放缩转到上确界，按列求下界；\S1.3。\\
+9 & 正交投影、勾股关系 & 把误差拆成固定残量与可变分量，证明唯一性；\S1.3。\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\endgroup

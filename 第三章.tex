@@ -1,0 +1,289 @@
+\chapter{线性最小二乘问题}
+
+\section{问题介绍}
+
+% 原文：definition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0090.tex, page-0091.tex
+\begin{definition}{最小二乘与最小范数解}{mc-3-1}
+设 $A\in\R^{m\times n}$、$b\in\R^m$。线性最小二乘问题为
+\[\min_{x\in\R^n}\|Ax-b\|_2^2.\]
+$m>n$ 时称超定，$m<n$ 时称欠定；$m=n$ 且 $A$ 非奇异时，解为 $A^{-1}b$。欠定且行满秩时，$Ax=b$ 有无穷多解，其最小范数解由
+\[\min_{Ax=b}\tfrac12\|x\|_2^2\]
+唯一确定。
+\end{definition}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0091.tex
+\begin{proposition}{欠定问题的鞍点系统}{mc-3-2}
+设 $A\in\R^{m\times n}$、$m<n$、$\rank A=m$。最小范数解满足
+\[\begin{bmatrix}I&A^{\mathsf T}\\A&0\end{bmatrix}\begin{bmatrix}x\\\lambda\end{bmatrix}=\begin{bmatrix}0\\b\end{bmatrix}.\]
+系数矩阵非奇异，$x=A^{\mathsf T}(AA^{\mathsf T})^{-1}b$。
+\end{proposition}
+
+\section{几类重要的矩阵变换}
+
+% 原文：definition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0092.tex, page-0093.tex
+\begin{definition}{初等矩阵与 Gauss 变换}{mc-3-3}
+对非零 $u,v\in\C^n$、$\tau\in\C\setminus\{0\}$，定义 $E(u,v,\tau)=I-\tau uv^*$，称为初等矩阵变换。
+设 $l_j=(0,\ldots,0,l_{j+1,j},\ldots,l_{n,j})^{\mathsf T}$，则 Gauss 变换为 $L(l_j)=I+l_je_j^{\mathsf T}$，$\det L(l_j)=1$、$L(l_j)^{-1}=L(-l_j)$。
+\end{definition}
+
+% 原文：theorem 3.1；来源：第03讲 线性最小二乘问题/pages/page-0092.tex, page-0093.tex
+\begin{theorem}{初等矩阵的性质}{mc-3-4}
+设 $E=I-\tau uv^*$，则 $\det E=1-\tau v^*u$。若 $1-\tau v^*u\ne0$，
+\[E^{-1}=E(u,v,\gamma),\qquad\gamma=\frac{\tau}{\tau v^*u-1}.\]
+对任意非零 $x,y\in\C^n$，存在 $u,v,\tau$ 使 $E(u,v,\tau)x=y$；$x=y$ 时可取恒等变换。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0093.tex
+\begin{proposition}{Sylvester 降幂公式}{mc-3-5}
+设 $A\in\C^{m\times n}$、$B\in\C^{n\times m}$、$m\geq n$，则
+\[\det(\lambda I_m-AB)=\lambda^{m-n}\det(\lambda I_n-BA).\]
+$AB$ 与 $BA$ 的非零特征值（含代数重数）相同。
+\end{proposition}
+
+% 原文：theorem 3.2；来源：第03讲 线性最小二乘问题/pages/page-0093.tex
+\begin{theorem}{非奇异矩阵与初等矩阵乘积}{mc-3-6}
+$A\in\C^{n\times n}$ 非奇异当且仅当可表示为若干初等矩阵的乘积。
+\end{theorem}
+
+% 原文：definition 3.1；来源：第03讲 线性最小二乘问题/pages/page-0094.tex
+\begin{definition}{Householder 变换}{mc-3-7}
+设 $0\ne v\in\C^n$，$\beta=2/(v^*v)$，定义 $H(v)=I-\beta vv^*$。$v$ 为 Householder 向量；$H(v)$ 是关于 $\Span\{v\}^\perp$ 的反射。单位化 $v$ 时，$H=I-2vv^*$。
+\end{definition}
+
+% 原文：theorem 3.3；来源：第03讲 线性最小二乘问题/pages/page-0094.tex
+\begin{theorem}{Householder 矩阵的性质}{mc-3-8}
+设 $H\in\C^{n\times n}$ 为 Householder 矩阵，则
+\[H^*=H,\quad H^*H=I,\quad H^2=I,\quad H^{-1}=H,\quad\det H=-1.\]
+特征值 $-1$ 的重数为 $1$，$1$ 的重数为 $n-1$（$n=1$ 时仅有 $-1$）。
+\end{theorem}
+
+% 原文：lemma 3.4；来源：第03讲 线性最小二乘问题/pages/page-0095.tex
+\begin{lemma}{一次反射连接两个向量}{mc-3-9}
+设 $x,y\in\C^n$ 且 $x\ne y$。存在 Householder 矩阵 $H(v)$ 使 $y=H(v)x$ 当且仅当 $\|x\|_2=\|y\|_2$ 且 $x^*y\in\R$。此时可取 $v=x-y$。
+\end{lemma}
+
+% 原文：theorem 3.5；来源：第03讲 线性最小二乘问题/pages/page-0095.tex, page-0103.tex
+\begin{theorem}{Householder 消零}{mc-3-10}
+设 $0\ne x\in\R^n$，则存在 Householder $H(v)$ 使 $H(v)x=\alpha e_1$，其中 $\alpha$ 可从 $\pm\|x\|_2$ 中选择使目标与 $x$ 不同的一值。若目标已等于 $x$，可省略变换。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0096.tex
+\begin{proposition}{Householder 乘积公式}{mc-3-11}
+对维数相容的 $A$，
+\[H(v)A=A-\beta v(v^*A),\qquad AH(v)=A-\beta(Av)v^*.\]
+不必显式构造 $H(v)$ 即可应用变换。
+\end{proposition}
+
+% 原文：definition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0097.tex, page-0098.tex
+\begin{definition}{Givens 旋转与消零}{mc-3-12}
+设 $1\leq i<j\leq n$，$\theta\in[0,2\pi]$，$c=\cos\theta,s=\sin\theta$。$G(i,j,\theta)$ 除 $i,j$ 行列的二维块
+\[\begin{bmatrix}c&s\\-s&c\end{bmatrix}\]
+外与单位矩阵相同。对实数 $a,b$ 不同时为零，取 $c=a/\sqrt{a^2+b^2}$、$s=b/\sqrt{a^2+b^2}$，则该块把 $(a,b)^{\mathsf T}$ 映为 $(\sqrt{a^2+b^2},0)^{\mathsf T}$。
+\end{definition}
+
+% 原文：theorem 3.6；来源：第03讲 线性最小二乘问题/pages/page-0097.tex
+\begin{theorem}{Givens 矩阵的性质}{mc-3-13}
+$G(i,j,\theta)$ 为正交矩阵，且 $\det G(i,j,\theta)=1$。
+\end{theorem}
+
+% 原文：lemma 3.7；来源：第03讲 线性最小二乘问题/pages/page-0099.tex
+\begin{lemma}{正交变换的舍入误差}{mc-3-14}
+设 $P\in\R^{n\times n}$ 为精确 Householder 或 Givens 变换，$\widetilde P$ 为其浮点实现，标准浮点模型下
+\[\fl(\widetilde PA)=P(A+E),\qquad\fl(A\widetilde P)=(A+F)P,\]
+其中 $\|E\|_2,\|F\|_2=O(\epsu)\|A\|_2$；隐含常数可依赖维数，假定无溢出或有害下溢。
+\end{lemma}
+
+% 原文：theorem 3.8；来源：第03讲 线性最小二乘问题/pages/page-0099.tex
+\begin{theorem}{一系列正交变换的向后误差}{mc-3-15}
+设 $P_i,Q_i$ 为维数相容的正交变换，波浪号为浮点实现，则
+\[\fl(\widetilde P_k\cdots\widetilde P_1A\widetilde Q_1\cdots\widetilde Q_k)
+=P_k\cdots P_1(A+E)Q_1\cdots Q_k,\]
+$\|E\|_2=O(\epsu)k\|A\|_2$。假定标准浮点模型且累计误差为小量。
+\end{theorem}
+
+\section{QR 分解}
+
+% 原文：theorem 3.9；来源：第03讲 线性最小二乘问题/pages/page-0100.tex
+\begin{theorem}{QR 分解的存在性与唯一性}{mc-3-16}
+设 $A\in\C^{m\times n}$、$m\geq n$。存在 $Q\in\C^{m\times n}$、$Q^*Q=I_n$ 与上三角 $R\in\C^{n\times n}$ 使 $A=QR$。若 $A$ 列满秩并要求 $R$ 的对角元为正实数，则该分解唯一。完整形式为 $A=\widehat Q\begin{bmatrix}R\\0\end{bmatrix}$，$\widehat Q\in\C^{m\times m}$ 酉。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0100.tex, page-0102.tex, page-0103.tex, page-0104.tex
+\begin{proposition}{Gram--Schmidt 与修正正交化}{mc-3-17}
+设 $A=[a_1,\ldots,a_n]$ 列满秩。经典正交化为
+\[r_{ij}=q_i^*a_j\ (i<j),\quad z_j=a_j-\sum_{i<j}r_{ij}q_i,\quad r_{jj}=\|z_j\|_2,\quad q_j=z_j/r_{jj}.\]
+修正正交化从 $z=a_j$ 开始，依次执行 $r_{ij}=q_i^*z$、$z\leftarrow z-r_{ij}q_i$，最后归一化。精确算术下二者等价。Householder QR 逐列消零，$\begin{bmatrix}R\\0\end{bmatrix}=H_n\cdots H_1A$、$\widehat Q=H_1\cdots H_n$。
+\end{proposition}
+
+% 原文：theorem 3.10；来源：第03讲 线性最小二乘问题/pages/page-0106.tex
+\begin{theorem}{列主元 QR 分解}{mc-3-18}
+设 $A\in\C^{m\times n}$、$m\geq n$，$\rank A=\ell<n$。存在置换 $P$ 与酉 $Q\in\C^{m\times m}$ 使
+\[AP=Q\begin{bmatrix}R_{11}&R_{12}\\0&0\end{bmatrix},\]
+$R_{11}\in\C^{\ell\times\ell}$ 非奇异上三角，采用列主元与正对角归一化时 $r_{11}\geq\cdots\geq r_{\ell\ell}>0$。
+\end{theorem}
+
+% 原文：corollary 3.11；来源：第03讲 线性最小二乘问题/pages/page-0107.tex
+\begin{corollary}{复矩阵的满秩分解}{mc-3-19}
+若 $A\in\C^{m\times n}$，$\rank A=r\leq\min(m,n)$，则存在列满秩 $F\in\C^{m\times r}$、行满秩 $G\in\C^{r\times n}$ 使 $A=FG$。
+\end{corollary}
+
+\section{奇异值分解}
+
+% 原文：theorem 3.12；来源：第03讲 线性最小二乘问题/pages/page-0110.tex, page-0112.tex
+\begin{theorem}{奇异值分解}{mc-3-20}
+设 $A\in\C^{m\times n}$、$m\geq n$。存在酉 $U\in\C^{m\times m}$、$V\in\C^{n\times n}$ 使
+\[U^*AV=\begin{bmatrix}\Sigma\\0\end{bmatrix},\qquad\Sigma=\diag(\sigma_1,\ldots,\sigma_n),\quad\sigma_1\geq\cdots\geq\sigma_n\geq0.\]
+$\sigma_i$ 为奇异值，$U,V$ 的列 $u_i,v_i$ 分别为左、右奇异向量。
+\end{theorem}
+
+% 原文：definition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0111.tex, page-0112.tex
+\begin{definition}{细 SVD、压缩 SVD 与截断 SVD}{mc-3-21}
+令 $U_n=[u_1,\ldots,u_n]$，则 $A=U_n\Sigma V^*$ 为细 SVD。$r=\rank A$ 时
+\[A=U_r\Sigma_rV_r^*=\sum_{i=1}^r\sigma_iu_iv_i^*\]
+为压缩 SVD；$A_k=\sum_{i=1}^k\sigma_iu_iv_i^*$ 为截断 SVD，$0\leq k\leq r$。
+\end{definition}
+
+% 原文：theorem 3.13；来源：第03讲 线性最小二乘问题/pages/page-0113.tex, page-0116.tex
+\begin{theorem}{奇异值的基本性质}{mc-3-22}
+设 $A=U\begin{bmatrix}\Sigma\\0\end{bmatrix}V^*\in\C^{m\times n}$、$m\geq n$，则
+\begin{enumerate}
+\item $A^*Av_i=\sigma_i^2v_i$，$AA^*u_i=\sigma_i^2u_i$（$i\leq n$）；其余 $m-n$ 个 $u_i$ 对应零特征值。
+\item $\|A\|_2=\sigma_1$，$\|A\|_F=(\sum_{i=1}^n\sigma_i^2)^{1/2}$。
+\item 若 $\rank A=r$，$\Ran A=\Span\{u_1,\ldots,u_r\}$，$\Ker A=\Span\{v_{r+1},\ldots,v_n\}$。
+\item $\|x\|_2=1$ 时 $\sigma_n\leq\|Ax\|_2\leq\sigma_1$。
+\item 酉 $X\in\C^{m\times m}$、$Y\in\C^{n\times n}$ 满足 $\sigma_i(X^*AY)=\sigma_i(A)$。
+\end{enumerate}
+\end{theorem}
+
+% 原文：theorem 3.14；来源：第03讲 线性最小二乘问题/pages/page-0113.tex, page-0118.tex
+\begin{theorem}{方阵奇异值的性质}{mc-3-23}
+设 $A\in\C^{n\times n}$，$A=U\Sigma V^*$，则
+\begin{enumerate}
+\item $|\det A|=\prod_{i=1}^n\sigma_i$；非奇异时 $\|A^{-1}\|_2=\sigma_n^{-1}$、$\kappa_2(A)=\sigma_1/\sigma_n$。
+\item 若 $A$ Hermite，$A=U\Lambda U^*$，并按 $|\lambda_1|\geq\cdots\geq|\lambda_n|$ 排列，则 $\sigma_i=|\lambda_i|$、$v_i=\operatorname{sign}(\lambda_i)u_i$；$\lambda_i=0$ 时取 $v_i=u_i$。
+\item $\begin{bmatrix}0&A^*\\A&0\end{bmatrix}$ 的特征值为 $\pm\sigma_i$，对应单位特征向量 $2^{-1/2}(v_i^{\mathsf T},\pm u_i^{\mathsf T})^{\mathsf T}$。
+\end{enumerate}
+\end{theorem}
+
+% 原文：theorem 3.15；来源：第03讲 线性最小二乘问题/pages/page-0114.tex, page-0115.tex
+\begin{theorem}{最佳低秩逼近}{mc-3-24}
+设 $A\in\C^{m\times n}$（$m\geq n$）有细 SVD，$0\leq k<n$。令 $A_k=\sum_{i=1}^k\sigma_iu_iv_i^*$，则
+\[\min_{\rank B\leq k}\|A-B\|_2=\|A-A_k\|_2=\sigma_{k+1}.\]
+若 $k\leq\rank A$，则 $A_k$ 是秩恰为 $k$ 的一个最优逼近。
+\end{theorem}
+
+% 原文：theorem 3.16；来源：第03讲 线性最小二乘问题/pages/page-0115.tex, page-0117.tex
+\begin{theorem}{Weyl 核空间估计}{mc-3-25}
+设 $A,B\in\C^{m\times n}$、$m\geq n$、$\rank B=k<n$，则
+\[
+\begin{gathered}
+\max_{x\in\Ker B,\ \|x\|_2=1}\|Ax\|_2\geq\sigma_{k+1}(A),\\
+\min_{x\in\Ker B,\ \|x\|_2=1}\|Ax\|_2\leq\sigma_{n-k}(A),\\
+\sigma_1(A-B)\geq\sigma_{k+1}(A),\qquad\sigma_n(A-B)\leq\sigma_{n-k}(A).
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：theorem 3.17；来源：第03讲 线性最小二乘问题/pages/page-0116.tex
+\begin{theorem}{矩阵和的奇异值界}{mc-3-26}
+设 $A,B\in\C^{m\times n}$、$m\geq n$，则
+\[\sigma_{i+j-1}(A+B)\leq\sigma_i(A)+\sigma_j(B),\quad1\leq i\leq n,\quad1\leq j\leq n-i+1.\]
+\end{theorem}
+
+% 原文：theorem 3.18；来源：第03讲 线性最小二乘问题/pages/page-0117.tex, page-0128.tex
+\begin{theorem}{奇异值的最小最大原理}{mc-3-27}
+设 $A\in\C^{m\times n}$、$m\geq n$，奇异值按降序排列。对 $k=1,\ldots,n$，
+\[
+\begin{aligned}
+\sigma_k(A)&=\min_{\dim\mathcal L=n-k+1}\ \max_{x\in\mathcal L,\ \|x\|_2=1}\|Ax\|_2,\\
+\sigma_k(A)&=\max_{\dim\mathcal L=k}\ \min_{x\in\mathcal L,\ \|x\|_2=1}\|Ax\|_2,
+\end{aligned}
+\]
+其中 $\mathcal L$ 遍历 $\C^n$ 的相应维数子空间。
+\end{theorem}
+
+% 原文：lemma 3.19；来源：第03讲 线性最小二乘问题/pages/page-0117.tex, page-0118.tex
+\begin{lemma}{奇异值交错不等式}{mc-3-28}
+设 $A\in\C^{m\times n}$，$A_r$ 由删除 $r$ 行或 $r$ 列得到，则
+\[\sigma_i(A)\geq\sigma_i(A_r)\geq\sigma_{i+r}(A).\]
+若 $B\in\C^{(m-r)\times(n-s)}$ 为子矩阵，则 $\sigma_i(A)\geq\sigma_i(B)\geq\sigma_{i+r+s}(A)$。指标超出相应矩阵最小维数时奇异值补零。
+\end{lemma}
+
+% 原文：lemma 3.20；来源：第03讲 线性最小二乘问题/pages/page-0118.tex
+\begin{lemma}{压缩矩阵的奇异值}{mc-3-29}
+设 $A\in\C^{n\times n}$、$1\leq k\leq n$，$U_k,V_k\in\C^{n\times k}$ 均单位列正交，则
+\[\sigma_i(U_k^*AV_k)\leq\sigma_i(A)\quad(1\leq i\leq k),\qquad
+|\det(U_k^*AV_k)|\leq\prod_{i=1}^k\sigma_i(A).\]
+\end{lemma}
+
+% 原文：theorem 3.21；来源：第03讲 线性最小二乘问题/pages/page-0118.tex
+\begin{theorem}{Weyl 乘积不等式}{mc-3-30}
+设 $A\in\C^{n\times n}$，$\sigma_1\geq\cdots\geq\sigma_n\geq0$、$|\lambda_1|\geq\cdots\geq|\lambda_n|$ 为奇异值及特征值，则
+\[\Bigl|\prod_{i=1}^k\lambda_i\Bigr|\leq\prod_{i=1}^k\sigma_i\quad(1\leq k\leq n),\]
+$k=n$ 时等号成立。
+\end{theorem}
+
+% 原文：theorem 3.22；来源：第03讲 线性最小二乘问题/pages/page-0119.tex, page-0129.tex
+\begin{theorem}{奇异值的扰动界}{mc-3-31}
+设 $A,E\in\C^{m\times n}$、$m\geq n$，则 $|\sigma_i(A+E)-\sigma_i(A)|\leq\|E\|_2$（$i=1,\ldots,n$）。
+\end{theorem}
+
+\section{线性最小二乘问题的求解方法}
+
+% 原文：theorem 3.23；来源：第03讲 线性最小二乘问题/pages/page-0120.tex, page-0121.tex
+\begin{theorem}{正规方程与残量正交}{mc-3-32}
+设 $A\in\R^{m\times n}$、$m\geq n$、$b\in\R^m$。$x_*$ 为最小二乘解当且仅当 $r=b-Ax_*\perp\Ran A$，等价于
+\[A^{\mathsf T}(b-Ax_*)=0,\qquad A^{\mathsf T}Ax_*=A^{\mathsf T}b.\]
+\end{theorem}
+
+% 原文：theorem 3.24；来源：第03讲 线性最小二乘问题/pages/page-0120.tex
+\begin{theorem}{列满秩与唯一最小二乘解}{mc-3-33}
+设 $A\in\R^{m\times n}$、$m>n$。$A^{\mathsf T}A$ 对称正定当且仅当 $\rank A=n$；此时最小二乘解唯一，且 $x_*=(A^{\mathsf T}A)^{-1}A^{\mathsf T}b$。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0121.tex, page-0122.tex
+\begin{proposition}{Cholesky、QR 与 SVD 求解公式}{mc-3-34}
+设 $A\in\R^{m\times n}$ 列满秩、$m\geq n$。三种等价求解形式为：
+\begin{enumerate}
+\item 正规方程：$C=A^{\mathsf T}A=LL^{\mathsf T}$，解 $Ly=A^{\mathsf T}b$、$L^{\mathsf T}x_*=y$。
+\item 细 QR：$A=QR$，$Q^{\mathsf T}Q=I_n$，解 $Rx_*=Q^{\mathsf T}b$。
+\item 细 SVD：$A=U_n\Sigma V^{\mathsf T}$，$x_*=V\Sigma^{-1}U_n^{\mathsf T}b$。
+\end{enumerate}
+$\kappa_2(A^{\mathsf T}A)=\kappa_2(A)^2$。Householder QR 的分解成本约 $2mn^2-2n^3/3$，正规方程法成本约 $mn^2+n^3/3$。
+\end{proposition}
+
+\section{推广与应用}
+
+% 原文：definition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0123.tex
+\begin{definition}{Tikhonov 正则化}{mc-3-35}
+设 $A\in\R^{m\times n}$、$b\in\R^m$、$\alpha>0$。正则化问题
+\[\min_x\tfrac12\|Ax-b\|_2^2+\tfrac\alpha2\|x\|_2^2\]
+有唯一解 $x=(A^{\mathsf T}A+\alpha I)^{-1}A^{\mathsf T}b$。
+\end{definition}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0123.tex
+\begin{proposition}{加权正则化}{mc-3-36}
+设 $W\in\R^{p\times n}$、$\alpha>0$，则
+\[\min_x\tfrac12\|Ax-b\|_2^2+\tfrac\alpha2\|Wx\|_2^2\]
+的解满足 $(A^{\mathsf T}A+\alpha W^{\mathsf T}W)x=A^{\mathsf T}b$。该矩阵非奇异时解唯一，取其逆得显式表达；等价的非奇异条件为 $\Ker A\cap\Ker W=\{0\}$。
+\end{proposition}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0123.tex, page-0124.tex
+\begin{proposition}{等式约束最小二乘}{mc-3-37}
+设 $A\in\R^{m\times n}$、$b\in\R^m$、$B\in\R^{p\times n}$、$f\in\R^p$，约束相容。问题 $\min_{Bx=f}\tfrac12\|Ax-b\|_2^2$ 的最优性系统为
+\[\begin{bmatrix}A^{\mathsf T}A&B^{\mathsf T}\\B&0\end{bmatrix}\begin{bmatrix}x\\\lambda\end{bmatrix}=\begin{bmatrix}A^{\mathsf T}b\\f\end{bmatrix}.\]
+若 $C=A^{\mathsf T}A$ 非奇异、$B$ 行满秩，解唯一且
+\[\lambda=(BC^{-1}B^{\mathsf T})^{-1}(BC^{-1}A^{\mathsf T}b-f),\qquad
+x=C^{-1}(A^{\mathsf T}b-B^{\mathsf T}\lambda).\]
+\end{proposition}
+
+% 原文：proposition 无编号；来源：第03讲 线性最小二乘问题/pages/page-0124.tex, page-0125.tex, page-0126.tex
+\begin{proposition}{拟合、预测与信号恢复的模型}{mc-3-38}
+多项式拟合数据 $(t_i,f_i)_{i=1}^N$ 时，$p(t)=\sum_{j=0}^d a_jt^j$，$A_{ij}=t_i^{j-1}$，解 $\min_a\|Aa-f\|_2^2$。
+线性预测 $f_k=\sum_{j=1}^d a_jf_{k-j}$，用观测数据构造 $A_{k,j}=f_{k-j}$ 后最小二乘估计 $a$。
+信号 $b=x+\eta$ 的正则化恢复模型为 $\min_x\tfrac12\|x-b\|_2^2+\tfrac\alpha2\|Dx\|_2^2$，$D$ 为离散二阶导算子或教材所用的 TV 算子。
+图像获取模型为 $f=\mathcal B(x)+\eta$，$\mathcal B$ 是代表模糊机制的卷积算子。其 Tikhonov 与加权正则化模型分别为
+\[\min_x\|\mathcal B(x)-f\|_2^2+\mu^2\|x\|_2^2,\qquad
+\min_x\|\mathcal B(x)-f\|_2^2+\mu^2\|Dx\|_2^2,\]
+$\mu>0$，$D$ 为给定的广义加权算子。
+\end{proposition}

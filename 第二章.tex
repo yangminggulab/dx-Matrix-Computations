@@ -1,0 +1,311 @@
+\chapter{线性方程组直接方法}
+
+\section{LU 分解与 Gauss 消去法}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0049.tex, page-0050.tex
+\begin{definition}{LU 分解与三角求解}{mc-2-1}
+本章系数矩阵 $A\in\R^{n\times n}$ 非奇异，$b\in\R^n$。$A=LU$ 中 $L$ 为单位下三角、$U$ 为非奇异上三角时称为 LU 分解。$Ax=b$ 等价于依次求解 $Ly=b$、$Ux=y$。
+\end{definition}
+
+% 原文：theorem 2.1；来源：第02讲 线性方程组直接方法/pages/page-0050.tex, page-0059.tex
+\begin{theorem}{LU 分解的存在性与唯一性}{mc-2-2}
+$A\in\R^{n\times n}$ 存在 $A=LU$（$L$ 单位下三角，$U$ 非奇异上三角）当且仅当全部顺序主子矩阵非奇异；此时分解唯一。
+\end{theorem}
+
+% 原文：corollary 2.2；来源：第02讲 线性方程组直接方法/pages/page-0051.tex
+\begin{corollary}{LDU 分解}{mc-2-3}
+$A\in\R^{n\times n}$ 的全部顺序主子矩阵非奇异当且仅当 $A=LDU$，其中 $L,U$ 分别为单位下、上三角矩阵，$D$ 为非奇异对角矩阵；三者唯一。
+\end{corollary}
+
+% 原文：theorem 2.3；来源：第02讲 线性方程组直接方法/pages/page-0051.tex
+\begin{theorem}{列对角占优的 LU 分解}{mc-2-4}
+若 $A\in\R^{n\times n}$ 非奇异且列对角占优，则存在 LU 分解，且 $L$ 中元素绝对值不超过 $1$。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0052.tex, page-0053.tex, page-0055.tex, page-0056.tex
+\begin{proposition}{LU 系数与前后回代}{mc-2-5}
+设 LU 分解存在，$l_{ii}=1$。系数按列递推：
+\[
+u_{kj}=a_{kj}-\sum_{s=1}^{k-1}l_{ks}u_{sj}\quad(j\geq k),\qquad
+l_{ik}=\frac{a_{ik}-\sum_{s=1}^{k-1}l_{is}u_{sk}}{u_{kk}}\quad(i>k).
+\]
+三角系统的解为
+\[y_i=b_i-\sum_{j<i}l_{ij}y_j,\qquad x_i=\frac{y_i-\sum_{j>i}u_{ij}x_j}{u_{ii}}.\]
+前者依 $i=1,\ldots,n$，后者依 $i=n,\ldots,1$。总运算量约 $2n^3/3+O(n^2)$。
+\end{proposition}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0057.tex, page-0059.tex
+\begin{definition}{主元与选主元}{mc-2-6}
+消去第 $k$ 步的对角元为主元。部分选主元在当前列未消去的元素中选绝对值最大者，再交换行；全主元在当前剩余子矩阵中选绝对值最大者，交换行列。
+\end{definition}
+
+% 原文：lemma 2.4；来源：第02讲 线性方程组直接方法/pages/page-0057.tex
+\begin{lemma}{置换矩阵的性质}{mc-2-7}
+设 $P\in\R^{n\times n}$ 为置换矩阵，$A$ 同阶。$PA$ 置换行，$AP$ 置换列；$P^{-1}=P^{\mathsf T}$、$\det P=\pm1$。置换矩阵的乘积仍为置换矩阵。
+\end{lemma}
+
+% 原文：theorem 2.5；来源：第02讲 线性方程组直接方法/pages/page-0057.tex, page-0059.tex
+\begin{theorem}{选主元 LU 分解}{mc-2-8}
+若 $A\in\R^{n\times n}$ 非奇异，存在置换 $P_L,P_R$、单位下三角 $L$、非奇异上三角 $U$，使 $P_LAP_R=LU$。也可仅作行置换取得 $PA=LU$。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0059.tex, page-0060.tex
+\begin{proposition}{选主元后的求解与求逆}{mc-2-9}
+若 $PA=LU$，则 $Ax=b$ 等价于 $Ly=Pb$、$Ux=y$，且 $A^{-1}=U^{-1}L^{-1}P$。其第 $i$ 列可由 $Ly_i=Pe_i$、$Ux_i=y_i$ 得到。
+\end{proposition}
+
+% 原文：theorem 2.6；来源：第02讲 线性方程组直接方法/pages/page-0061.tex
+\begin{theorem}{分块 LU 分解}{mc-2-10}
+固定分块方式（对角块均为方阵）后，$A$ 存在唯一的分块 LU 分解（$L$ 块单位下三角、$U$ 块上三角且对角块非奇异）当且仅当全部顺序分块主子矩阵非奇异。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0061.tex, page-0066.tex
+\begin{proposition}{分块消去与 Schur 补}{mc-2-11}
+设 $A_{11}$ 非奇异，则
+\[
+\begin{bmatrix}A_{11}&A_{12}\\A_{21}&A_{22}\end{bmatrix}
+=\begin{bmatrix}I&0\\A_{21}A_{11}^{-1}&I\end{bmatrix}
+\begin{bmatrix}A_{11}&A_{12}\\0&S\end{bmatrix},\qquad S=A_{22}-A_{21}A_{11}^{-1}A_{12}.
+\]
+$S$ 称为 Schur 补。
+\end{proposition}
+
+\section{特殊方程组的求解}
+
+% 原文：theorem 2.7；来源：第02讲 线性方程组直接方法/pages/page-0062.tex
+\begin{theorem}{Cholesky 分解}{mc-2-12}
+若 $A\in\R^{n\times n}$ 对称正定，存在唯一对角元为正的下三角 $L$ 使 $A=LL^{\mathsf T}$。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0063.tex, page-0065.tex
+\begin{proposition}{Cholesky 与 LDL 转置的系数}{mc-2-13}
+对称正定 $A$ 的 Cholesky 系数为
+\[
+l_{jj}=\sqrt{a_{jj}-\sum_{k<j}l_{jk}^2},\qquad
+l_{ij}=\frac{a_{ij}-\sum_{k<j}l_{ik}l_{jk}}{l_{jj}}\quad(i>j).
+\]
+分解的运算量约 $n^3/3$。若 $A=LDL^{\mathsf T}$，$L$ 单位下三角，则
+\[d_j=a_{jj}-\sum_{k<j}l_{jk}^2d_k,\qquad l_{ij}=\frac{a_{ij}-\sum_{k<j}l_{ik}d_kl_{jk}}{d_j}.\]
+\end{proposition}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0066.tex, page-0067.tex
+\begin{proposition}{对称不定矩阵的分解}{mc-2-14}
+设 $A\in\R^{n\times n}$ 对称非奇异，存在置换 $P$ 使 $PAP^{\mathsf T}=L\widetilde D L^{\mathsf T}$，其中 $L$ 单位下三角，$\widetilde D$ 块对角且对角块至多二阶。Aasen 分解为 $PAP^{\mathsf T}=LTL^{\mathsf T}$，$T$ 对称三对角。
+\end{proposition}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0067.tex, page-0068.tex
+\begin{definition}{三对角矩阵与追赶法系数}{mc-2-15}
+设 $n\geq2$，$A$ 的主对角元为 $b_i$，下、上对角元分别为 $a_i,c_i$。分解 $A=LU$ 中，$L$ 的对角元为 $\alpha_i$、下对角元为 $a_i$，$U$ 的对角元为 $1$、上对角元为 $\beta_i$：
+\[\alpha_1=b_1,\quad\beta_i=c_i/\alpha_i\ (i<n),\quad\alpha_i=b_i-a_{i-1}\beta_{i-1}\ (2\leq i\leq n).\]
+\end{definition}
+
+% 原文：theorem 2.8；来源：第02讲 线性方程组直接方法/pages/page-0068.tex
+\begin{theorem}{追赶法的非零主元}{mc-2-16}
+设上述三对角 $A$ 满足
+\[
+\begin{gathered}
+|b_1|>|c_1|>0,\quad|b_n|>|a_{n-1}|>0,\quad a_ic_i\ne0\ (1\leq i<n),\\
+|b_i|\geq|a_{i-1}|+|c_i|\quad(2\leq i<n).
+\end{gathered}
+\]
+则 $A$ 非奇异，$|\alpha_1|=|b_1|>0$，$0<|\beta_i|<1$（$i<n$），且
+\[
+\begin{gathered}
+0<|c_i|\leq|b_i|-|a_{i-1}|<|\alpha_i|<|b_i|+|a_{i-1}|\quad(2\leq i<n),\\
+0<|b_n|-|a_{n-1}|<|\alpha_n|<|b_n|+|a_{n-1}|.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0068.tex, page-0069.tex
+\begin{proposition}{追赶法求解公式}{mc-2-17}
+在上述非零主元条件下，求解 $Ax=f$ 时
+\[
+y_1=f_1/\alpha_1,\qquad y_i=(f_i-a_{i-1}y_{i-1})/\alpha_i\quad(2\leq i\leq n),
+\]
+\[x_n=y_n,\qquad x_i=y_i-\beta_i x_{i+1}\quad(i=n-1,\ldots,1).\]
+运算量约 $8n-6$。
+\end{proposition}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0069.tex, page-0070.tex
+\begin{definition}{带宽与 Toeplitz 矩阵}{mc-2-18}
+$A=[a_{ij}]$ 若在 $i>j+b_l$ 或 $i<j-b_u$ 时 $a_{ij}=0$，则称为下带宽 $b_l$、上带宽 $b_u$ 的带状矩阵。Toeplitz 矩阵沿平行于主对角线的各条对角线为常数，即 $T_{ij}=t_{i-j}$。
+\end{definition}
+
+% 原文：theorem 2.9；来源：第02讲 线性方程组直接方法/pages/page-0070.tex
+\begin{theorem}{无主元 LU 的带宽}{mc-2-19}
+设 $A\in\R^{n\times n}$ 的下、上带宽为 $b_l,b_u$，且存在无选主元 LU 分解。则 $L$ 的下带宽不超过 $b_l$，$U$ 的上带宽不超过 $b_u$。
+\end{theorem}
+
+% 原文：theorem 2.10；来源：第02讲 线性方程组直接方法/pages/page-0070.tex
+\begin{theorem}{部分选主元 LU 的带宽}{mc-2-20}
+设带状 $A\in\R^{n\times n}$ 的下、上带宽为 $b_l,b_u$，$PA=LU$ 为部分选主元分解。$U$ 的上带宽不超过 $b_l+b_u$，$L$ 每列非零元不超过 $b_l+1$ 个，称为基本带状结构。
+\end{theorem}
+
+% 原文：lemma 2.11；来源：第02讲 线性方程组直接方法/pages/page-0070.tex
+\begin{lemma}{反向对称矩阵}{mc-2-21}
+设反向单位矩阵 $J_n$ 满足 $(J_n)_{i,n+1-i}=1$，其余元素为零。$A\in\R^{n\times n}$ 反向对称当且仅当 $A=J_nA^{\mathsf T}J_n$，等价于 $J_nA=A^{\mathsf T}J_n$。$J_n^{\mathsf T}=J_n^{-1}=J_n$、$J_n^2=I$；非奇异反向对称矩阵的逆仍反向对称。
+\end{lemma}
+
+% 原文：theorem 2.12；来源：第02讲 线性方程组直接方法/pages/page-0071.tex
+\begin{theorem}{三角 Toeplitz 的封闭性}{mc-2-22}
+若 $T,S\in\R^{n\times n}$ 为上三角 Toeplitz 矩阵，则 $TS$ 也是上三角 Toeplitz。$T$ 非奇异时 $T^{-1}$ 也为上三角 Toeplitz。下三角情形对应成立。
+\end{theorem}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0071.tex, page-0072.tex
+\begin{definition}{Yule--Walker 方程与强正则性}{mc-2-23}
+设 $T_n$ 为对称正定 Toeplitz 矩阵，$t^{(n)}=(t_1,\ldots,t_n)^{\mathsf T}$，其中前 $n-1$ 项来自首列对角元以下的元素，$t_n$ 任意。$T_ny=-t^{(n)}$ 称为 Yule--Walker 方程。顺序主子矩阵全部非奇异时，$T_n$ 称为强正则。
+\end{definition}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0071.tex, page-0072.tex, page-0073.tex
+\begin{proposition}{Levinson--Durbin 递推}{mc-2-24}
+设 $T_n$ 对称正定且 $t_0=1$，$T_ky^{(k)}=-t^{(k)}$。令 $\tau_k=1+(t^{(k)})^{\mathsf T}y^{(k)}$。由 $k$ 阶解到 $k+1$ 阶解：
+\[
+\alpha_k=\frac{-t_{k+1}-(t^{(k)})^{\mathsf T}J_ky^{(k)}}{\tau_k},\quad
+y^{(k+1)}=\begin{bmatrix}y^{(k)}+\alpha_kJ_ky^{(k)}\\\alpha_k\end{bmatrix},
+\]
+\[\tau_{k+1}=(1-\alpha_k^2)\tau_k.\]
+一般右端项 $T_kx^{(k)}=b^{(k)}$ 时，
+\[
+\beta_k=\frac{b_{k+1}-(t^{(k)})^{\mathsf T}J_kx^{(k)}}{\tau_k},\quad
+x^{(k+1)}=\begin{bmatrix}x^{(k)}+\beta_kJ_ky^{(k)}\\\beta_k\end{bmatrix}.
+\]
+对 $k<n$，分母因 $T_{k+1}$ 正定而为正；递推总成本 $O(n^2)$。
+\end{proposition}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0074.tex, page-0075.tex
+\begin{proposition}{非对称 Toeplitz 的递推}{mc-2-25}
+设 $T_n$ 强正则且主对角元为 $1$，首行、首列的非对角部分为 $t_i,s_i$。设
+\[T_kx^{(k)}=b^{(k)},\qquad T_k^{\mathsf T}y^{(k)}=-t^{(k)},\qquad T_kz^{(k)}=-s^{(k)}.\]
+令 $d_k=1+(s^{(k)})^{\mathsf T}y^{(k)}=1+(t^{(k)})^{\mathsf T}z^{(k)}\ne0$，则
+\[
+\begin{aligned}
+\beta_k&=\frac{b_{k+1}-(s^{(k)})^{\mathsf T}J_kx^{(k)}}{d_k},\\
+\alpha_k&=\frac{-t_{k+1}-(t^{(k)})^{\mathsf T}J_ky^{(k)}}{d_k},\\
+\gamma_k&=\frac{-s_{k+1}-(s^{(k)})^{\mathsf T}J_kz^{(k)}}{d_k}.
+\end{aligned}
+\]
+$x^{(k+1)},y^{(k+1)},z^{(k+1)}$ 的前 $k$ 项分别为
+$x^{(k)}+\beta_kJ_ky^{(k)}$、$y^{(k)}+\alpha_kJ_kz^{(k)}$、$z^{(k)}+\gamma_kJ_ky^{(k)}$，末项分别为 $\beta_k,\alpha_k,\gamma_k$。
+\end{proposition}
+
+\section{扰动分析}
+
+% 原文：definition 2.1；来源：第02讲 线性方程组直接方法/pages/page-0076.tex
+\begin{definition}{病态与良态}{mc-2-26}
+在线性方程组 $Ax=b$ 中，若 $A$ 或 $b$ 的微小变化可能导致解的巨大变化，则问题病态；反之良态。
+\end{definition}
+
+% 原文：definition 2.2；来源：第02讲 线性方程组直接方法/pages/page-0076.tex
+\begin{definition}{矩阵条件数}{mc-2-27}
+设 $A$ 非奇异，$\|\cdot\|$ 为算子范数，$\kappa(A)=\|A^{-1}\|\|A\|$ 为条件数。对应 $p$-范数记 $\kappa_p(A)$。若 $A$ 实对称非奇异，则 $\kappa_2(A)=\max_i|\lambda_i|/\min_i|\lambda_i|$。
+\end{definition}
+
+% 原文：theorem 2.13；来源：第02讲 线性方程组直接方法/pages/page-0077.tex
+\begin{theorem}{相对于近似解的误差界}{mc-2-28}
+设 $A$ 非奇异，$Ax_*=b$、$(A+\delta A)\widehat x=b+\delta b$、$\widehat x\ne0$，$\delta x=\widehat x-x_*$。使用相应向量及导出矩阵范数时，
+\[\frac{\|\delta x\|}{\|\widehat x\|}\leq\kappa(A)\left(\frac{\|\delta A\|}{\|A\|}+\frac{\|\delta b\|}{\|A\|\|\widehat x\|}\right).\]
+若 $\delta b=0$，右端为 $\kappa(A)\|\delta A\|/\|A\|$。
+\end{theorem}
+
+% 原文：lemma 2.14；来源：第02讲 线性方程组直接方法/pages/page-0078.tex, page-0079.tex
+\begin{lemma}{Neumann 级数}{mc-2-29}
+设 $B\in\R^{n\times n}$，在某算子范数下 $\|B\|<1$。则 $I-B$ 可逆，且
+\[(I-B)^{-1}=\sum_{k=0}^\infty B^k,\qquad\|(I-B)^{-1}\|\leq\frac1{1-\|B\|}.\]
+\end{lemma}
+
+% 原文：theorem 2.15；来源：第02讲 线性方程组直接方法/pages/page-0079.tex
+\begin{theorem}{相对于精确解的误差界}{mc-2-30}
+设 $A\in\R^{n\times n}$ 非奇异、$b\ne0$、$Ax_*=b$、$(A+\delta A)\widehat x=b+\delta b$，$\|A^{-1}\|\|\delta A\|<1$。则
+\[\frac{\|\widehat x-x_*\|}{\|x_*\|}\leq\frac{\kappa(A)}{1-\kappa(A)\|\delta A\|/\|A\|}\left(\frac{\|\delta A\|}{\|A\|}+\frac{\|\delta b\|}{\|b\|}\right).\]
+若 $\delta A=0$，则
+\[\frac1{\kappa(A)}\frac{\|\delta b\|}{\|b\|}\leq\frac{\|\widehat x-x_*\|}{\|x_*\|}\leq\kappa(A)\frac{\|\delta b\|}{\|b\|}.\]
+\end{theorem}
+
+% 原文：theorem 2.16；来源：第02讲 线性方程组直接方法/pages/page-0079.tex, page-0080.tex
+\begin{theorem}{到奇异矩阵的距离}{mc-2-31}
+设 $A\in\R^{n\times n}$ 非奇异，则
+\[\min_{A+\delta A\text{ 奇异}}\frac{\|\delta A\|_2}{\|A\|_2}=\frac1{\kappa_2(A)}.\]
+\end{theorem}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0080.tex
+\begin{definition}{残量与误差}{mc-2-32}
+设 $Ax_*=b$、$A$ 非奇异。近似解 $\widehat x$ 的残量为 $r=b-A\widehat x$，误差满足
+\[\widehat x-x_*=-A^{-1}r,\qquad\|\widehat x-x_*\|\leq\|A^{-1}\|\|r\|.\]
+\end{definition}
+
+% 原文：theorem 2.17；来源：第02讲 线性方程组直接方法/pages/page-0080.tex
+\begin{theorem}{残量与最小向后误差}{mc-2-33}
+设 $A\in\R^{n\times n}$ 非奇异、$\widehat x\ne0$，$r=b-A\widehat x$，使用向量范数及其导出算子范数。若 $\widehat A\widehat x=b$，则 $\|\widehat A-A\|\geq\|r\|/\|\widehat x\|$。存在 $\delta A$ 达到等号，且 $(A+\delta A)\widehat x=b$。
+\end{theorem}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0081.tex, page-0082.tex
+\begin{definition}{按分量的相对条件数}{mc-2-34}
+设 $A$ 非奇异，$|A|$ 表示逐元素绝对值。定义 Skeel（Bauer）条件数
+\[\kappa_{cr}(A)=\bigl\||A^{-1}|\,|A|\bigr\|.\]
+对绝对单调的向量范数及其导出范数，若 $|\delta A|\leq\varepsilon|A|$、$\delta b=0$、$(A+\delta A)\widehat x=b$、$\widehat x\ne0$，则 $\|\widehat x-x_*\|/\|\widehat x\|\leq\kappa_{cr}(A)\varepsilon$。
+\end{definition}
+
+% 原文：lemma 2.18；来源：第02讲 线性方程组直接方法/pages/page-0082.tex
+\begin{lemma}{行缩放与相对条件数}{mc-2-35}
+设 $A\in\R^{n\times n}$ 非奇异，$D$ 非奇异对角矩阵，则 $\kappa_{cr}(DA)=\kappa_{cr}(A)$。
+\end{lemma}
+
+% 原文：theorem 2.19；来源：第02讲 线性方程组直接方法/pages/page-0082.tex
+\begin{theorem}{按分量的相对向后误差}{mc-2-36}
+设 $A\in\R^{n\times n}$ 非奇异，$r=b-A\widehat x$。满足
+\[|\delta A|\leq\varepsilon|A|,\quad|\delta b|\leq\varepsilon|b|,\quad(A+\delta A)\widehat x=b+\delta b\]
+的最小非负 $\varepsilon$ 为
+\[\varepsilon=\max_i\frac{|r_i|}{(|A|\,|\widehat x|+|b|)_i}.\]
+分母为零时，$0/0$ 取 $0$；正数除以零取 $+\infty$。
+\end{theorem}
+
+\section{误差分析}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0083.tex, page-0084.tex
+\begin{definition}{机器精度、误差因子与增长因子}{mc-2-37}
+记单位舍入误差为 $\epsu$，$\gamma_k=k\epsu/(1-k\epsu)$（$k\epsu<1$）。部分选主元 Gauss 消去的增长因子为
+\[\rho_n=\frac{\max_{i,j,k}|a_{ij}^{(k)}|}{\max_{i,j}|a_{ij}|},\]
+其中 $a_{ij}^{(k)}$ 为消去过程中剩余子矩阵的元素。
+\end{definition}
+
+% 原文：theorem 2.20；来源：第02讲 线性方程组直接方法/pages/page-0083.tex
+\begin{theorem}{LU 分解的舍入误差}{mc-2-38}
+假定 $A\in\R^{n\times n}$ 全部顺序主子式非零，浮点消去无中断、无溢出或有害下溢，且 $n\epsu<1$。计算出的 $L,U$ 满足
+\[A=LU+E,\qquad|E|\leq\gamma_n|L|\,|U|.\]
+\end{theorem}
+
+% 原文：lemma 2.21；来源：第02讲 线性方程组直接方法/pages/page-0083.tex
+\begin{lemma}{三角回代的向后误差}{mc-2-39}
+标准浮点回代所得 $\widehat y,\widehat x$ 满足
+\[(L+\delta L)\widehat y=b,\quad|\delta L|\leq\gamma_n|L|,\qquad
+(U+\delta U)\widehat x=\widehat y,\quad|\delta U|\leq\gamma_n|U|,\]
+其中 $L,U$ 非奇异三角，$n\epsu<1$，并假定无溢出或有害下溢。
+\end{lemma}
+
+% 原文：theorem 2.22；来源：第02讲 线性方程组直接方法/pages/page-0084.tex
+\begin{theorem}{部分选主元 Gauss 法的误差界}{mc-2-40}
+设 $A$ 非奇异，部分选主元 Gauss 法所得 $\widehat x$，在标准浮点模型下、$3n\epsu<1$ 且消去无中断时，满足
+\[(A+\delta A)\widehat x=b,\qquad\|\delta A\|_\infty\leq n^2\gamma_{3n}\rho_n\|A\|_\infty.\]
+\end{theorem}
+
+% 原文：theorem 2.23；来源：第02讲 线性方程组直接方法/pages/page-0084.tex
+\begin{theorem}{增长因子的最坏情形}{mc-2-41}
+部分选主元 Gauss 消去法的增长因子满足 $\rho_n\leq2^{n-1}$；此上界可以达到。
+\end{theorem}
+
+\section{解的改进}
+
+% 原文：definition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0085.tex
+\begin{definition}{缩放与均衡化}{mc-2-42}
+对非奇异对角矩阵 $D_r,D_c$，$Ax=b$ 等价于
+\[D_r^{-1}AD_c^{-1}y=D_r^{-1}b,\qquad x=D_c^{-1}y.\]
+缩放后各行及各列具有相同或近似相同的范数时，称为矩阵的均衡化。
+\end{definition}
+
+% 原文：proposition 无编号；来源：第02讲 线性方程组直接方法/pages/page-0085.tex, page-0086.tex
+\begin{proposition}{迭代改进的更新公式}{mc-2-43}
+设 $PA=LU$，$\widehat x$ 为当前近似解。一次迭代改进为
+\[r=b-A\widehat x,\quad Ly=Pr,\quad Uz=y,\quad\widehat x_{\rm new}=\widehat x+z.\]
+若 $Az=r$ 被精确求解，则更新后为精确解。每次更新成本为 $O(n^2)$。
+\end{proposition}

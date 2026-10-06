@@ -1,0 +1,690 @@
+\chapter{线性代数基础}
+
+% 功能划分由本笔记归纳；来源为 Cornell CS 6210 的公开教学大纲。
+\section*{全书结构：矩阵计算解决什么问题}
+\phantomsection
+\addcontentsline{toc}{section}{全书结构：矩阵计算解决什么问题}
+\noindent 研究对象是有限维线性映射及其矩阵表示。计算的目标，是把问题化为容易求解的形式，
+同时控制舍入误差、数据扰动与运算成本。下图先按功能组织，再对应教材四讲。
+
+\vspace{0.7em}
+\begingroup
+\setstretch{1.1}
+\dirtree{%
+.1 \textsf{矩阵计算：用矩阵分解实现求解、拟合与结构分析}.
+.2 \textsf{基础工具：描述对象、度量误差、选择坐标}.
+.3 空间与投影：像、核、秩、正交分解，描述解集与残量.
+.3 范数与条件数：度量大小和误差，判断问题对数据的敏感性.
+.3 相似、酉变换与 Kronecker 积：改变表示或组合线性算子.
+.3 \textsf{教材对应：第1章；条件数与浮点误差续见第2章}.
+.2 \textsf{功能一：求解线性约束 $Ax=b$}.
+.3 对象与问题：方阵方程组，求满足约束的未知向量.
+.3 工具：Gauss 消去、LU、Cholesky，归结为三角方程组.
+.3 结构与精度：追赶法、带状与 Toeplitz 递推、选主元、改进解.
+.3 \textsf{教材对应：第2章；第1章提供非奇异性与误差度量}.
+.2 \textsf{功能二：拟合不相容数据并控制解的大小}.
+.3 对象与问题：矩形系统 $Ax\approx b$，最小化残量或加入约束.
+.3 工具：QR、SVD、正规方程，分离可拟合部分与正交残量.
+.3 推广：最小范数解、正则化、加权与等式约束最小二乘.
+.3 \textsf{教材对应：第3章；第1章投影、第2章 Cholesky 共同支撑}.
+.2 \textsf{功能三：揭示谱、不变子空间与低秩结构}.
+.3 对象与问题：特征值、奇异值和主要方向，识别矩阵的结构.
+.3 工具：Schur 与 QR 迭代处理特征值，SVD 处理秩与逼近.
+.3 \textsf{教材对应：第1章谱理论、第3章 SVD、第4讲非对称特征值}.
+.3 第4讲作为后续方向；本册正文整理到第3章.
+}
+\endgroup
+
+\smallskip
+\noindent\textsf{各部分怎样联系：}
+投影把几何上的最佳逼近转成最小二乘；QR 为最小二乘和特征值计算提供共同工具；
+SVD 同时解释秩、条件数、最小范数解与低秩逼近；LU、Cholesky 则把分解后的求解落实为三角系统。
+条件数描述问题的敏感性，向后误差描述算法计算结果的质量，两者结合才能判断解是否可靠。
+
+\smallskip
+\begingroup\footnotesize\noindent
+框架参考：\href{https://www.cs.cornell.edu/courses/cs6210/2010fa/}{Cornell Charles Van Loan，CS 6210（2010）教学大纲}，
+教材为 Golub 与 Van Loan 的 \textit{Matrix Computations}；另参照
+\href{https://www.cs.cornell.edu/courses/cs6210/2020fa/}{Cornell Austin Benson，CS 6210（2020）课程说明}。
+上面的功能分组和潘建瑜讲义对应关系由本笔记归纳，并非逐字引用大纲。
+完整学科还包括稀疏迭代法、对称特征值问题和矩阵函数等，本册不作系统整理。
+\par\endgroup
+\clearpage
+
+\section{线性空间与内积空间}
+
+% 原文：definition 1.1；来源：第01讲 线性代数基础/pages/page-0012.tex
+\begin{definition}{数域}{mc-1-1}
+设 $\F$ 是包含 $0,1$ 的数集，且对任意两个元素的和、差、积、商（除数非零）封闭，则称 $\F$ 为数域。本笔记中的数域取 $\R$ 或 $\C$。
+\end{definition}
+
+% 原文：definition 1.2；来源：第01讲 线性代数基础/pages/page-0012.tex
+\begin{definition}{线性空间}{mc-1-2}
+设 $S$ 是非空集合，$\F$ 是数域。加法 $S\times S\to S$、数乘 $\F\times S\to S$ 满足以下规则时，称 $S$ 为 $\F$ 上的线性空间。对任意 $x,y,z\in S$ 和 $\alpha,\beta\in\F$，
+\[
+\begin{gathered}
+x+y=y+x,\qquad(x+y)+z=x+(y+z),\\
+\exists\,0\in S:\ x+0=x,\qquad\forall x\ \exists(-x)\in S:\ x+(-x)=0,\\
+1x=x,\qquad\alpha(\beta x)=(\alpha\beta)x,\\
+(\alpha+\beta)x=\alpha x+\beta x,\qquad\alpha(x+y)=\alpha x+\alpha y.
+\end{gathered}
+\]
+\end{definition}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0013.tex
+\begin{definition}{线性相关、线性组合、秩与维数}{mc-1-3}
+设 $x_1,\ldots,x_k\in S$。若存在不全为零的 $\alpha_1,\ldots,\alpha_k\in\F$ 使 $\sum_{i=1}^k\alpha_ix_i=0$，则向量组线性相关；否则线性无关。$x=\sum_{i=1}^k\alpha_ix_i$ 称为线性组合，$\alpha_i$ 为表出系数。
+向量组中能表出所有向量的线性无关组称为极大线性无关组，其向量个数称为该向量组的秩。一组能表出 $S$ 中全部向量的线性无关向量称为 $S$ 的基；基含 $n$ 个向量时 $\dim S=n$。若存在任意多个线性无关向量，则 $S$ 无限维。
+\end{definition}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0013.tex, page-0014.tex
+\begin{definition}{子空间、和与直和}{mc-1-4}
+$S$ 的非空子集 $W$ 在原加法、数乘下构成线性空间时称为子空间。$S_1,S_2\subseteq S$ 为子空间时，
+\[S_1+S_2=\{x_1+x_2:x_1\in S_1,x_2\in S_2\}.\]
+若和中的每个元素都具有唯一的上述分解，则称其为直和，记作 $S_1\oplus S_2$。若 $S=S_1\oplus S_2$，则 $S_2$ 为 $S_1$ 的补空间。
+\end{definition}
+
+% 原文：theorem 1.1；来源：第01讲 线性代数基础/pages/page-0014.tex
+\begin{theorem}{子空间的判别}{mc-1-5}
+设 $S$ 是数域 $\F$ 上的线性空间，$W\subseteq S$ 非空。$W$ 为子空间当且仅当对任意 $x,y\in W$、$\alpha\in\F$，均有 $x+y\in W$、$\alpha x\in W$。
+\end{theorem}
+
+% 原文：theorem 1.2；来源：第01讲 线性代数基础/pages/page-0014.tex
+\begin{theorem}{维数公式}{mc-1-6}
+设 $S_1,S_2$ 是 $S$ 的有限维子空间，则 $S_1+S_2$ 与 $S_1\cap S_2$ 均为子空间，且
+\[\dim(S_1+S_2)+\dim(S_1\cap S_2)=\dim S_1+\dim S_2.\]
+\end{theorem}
+
+% 原文：theorem 1.3；来源：第01讲 线性代数基础/pages/page-0014.tex
+\begin{theorem}{直和的等价判别}{mc-1-7}
+设 $S_1,S_2$ 为 $S$ 的子空间，下述前三条等价；有限维时也与第四条等价：
+\begin{enumerate}
+\item $S_1+S_2$ 是直和。
+\item 若 $0=x_1+x_2$，$x_i\in S_i$，则 $x_1=x_2=0$。
+\item $S_1\cap S_2=\{0\}$。
+\item $\dim S_1+\dim S_2=\dim(S_1+S_2)$。
+\end{enumerate}
+\end{theorem}
+
+% 原文：theorem 1.4；来源：第01讲 线性代数基础/pages/page-0014.tex, page-0037.tex
+\begin{theorem}{补空间的存在性}{mc-1-8}
+设 $S_1$ 是线性空间 $S$ 的子空间，则存在另一个子空间 $S_2$ 使得 $S=S_1\oplus S_2$。
+\end{theorem}
+
+% 原文：definition 1.3；来源：第01讲 线性代数基础/pages/page-0015.tex
+\begin{definition}{内积空间}{mc-1-9}
+在 $\F$ 上的线性空间 $S$ 中，运算 $(\cdot,\cdot):S\times S\to\F$ 满足
+\[
+\begin{gathered}
+(y,x)=\overline{(x,y)},\qquad(x+y,z)=(x,z)+(y,z),\\
+(\alpha x,y)=\alpha(x,y),\qquad(x,x)\geq0,\quad(x,x)=0\iff x=0
+\end{gathered}
+\]
+时称为内积，$S$ 称为内积空间。$\F=\R$ 时为欧氏空间，$\F=\C$ 时为酉空间。这里内积对第一个变量线性；标准内积为 $(x,y)=y^*x$（实数情形为 $y^{\mathsf T}x$）。
+\end{definition}
+
+% 原文：definition 1.4；来源：第01讲 线性代数基础/pages/page-0016.tex
+\begin{definition}{正交}{mc-1-10}
+设 $S$ 为内积空间。$(x,y)=0$ 时记 $x\perp y$；对全部 $y\in S_1$ 均有 $(x,y)=0$ 时记 $x\perp S_1$；对全部 $x\in S_1$ 均有 $x\perp S_2$ 时记 $S_1\perp S_2$。
+\end{definition}
+
+% 原文：theorem 1.5；来源：第01讲 线性代数基础/pages/page-0016.tex
+\begin{theorem}{正交子空间的和}{mc-1-11}
+设 $S_1,S_2$ 是内积空间 $S$ 的子空间。若 $S_1\perp S_2$，则 $S_1+S_2$ 为直和。
+\end{theorem}
+
+% 原文：definition 1.5；来源：第01讲 线性代数基础/pages/page-0016.tex
+\begin{definition}{正交补}{mc-1-12}
+设 $S_1\subseteq S$ 为子空间，其正交补是子空间
+\[S_1^\perp=\{x\in S:(x,y)=0\ \text{对全部 }y\in S_1\}.\]
+\end{definition}
+
+% 原文：theorem 1.6；来源：第01讲 线性代数基础/pages/page-0016.tex, page-0026.tex
+\begin{theorem}{正交分解}{mc-1-13}
+设 $S_1$ 是内积空间 $S$ 的有限维子空间，则正交补唯一，且 $S=S_1\oplus S_1^\perp$。
+\end{theorem}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0016.tex
+\begin{definition}{正交基与标准正交基}{mc-1-14}
+一组基 $x_1,\ldots,x_n$ 满足 $(x_i,x_j)=0$（$i\ne j$）时称为正交基；另满足 $(x_i,x_i)=1$ 时称为标准正交基。$\R^n$ 的标准基为 $e_1,\ldots,e_n$。
+\end{definition}
+
+\section{矩阵与投影}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0017.tex, page-0018.tex
+\begin{definition}{矩阵的秩与四个子空间}{mc-1-15}
+设 $A\in\R^{m\times n}$。其列秩与行秩相同，记为 $\rank A$。向量组张成的空间为
+\[\Span\{x_1,\ldots,x_k\}=\Bigl\{\sum_{i=1}^k\alpha_ix_i:\alpha_i\in\R\Bigr\}.\]
+\[
+\begin{aligned}
+\Ker A&=\{x\in\R^n:Ax=0\},&\Ran A&=\{Ax:x\in\R^n\},\\
+\Ker A^{\mathsf T}&=\{y\in\R^m:A^{\mathsf T}y=0\},&\Ran A^{\mathsf T}&=\{A^{\mathsf T}y:y\in\R^m\}.
+\end{aligned}
+\]
+它们分别为零空间、像空间、左零空间与行空间；$\Ran A$ 等于 $A$ 的列向量张成的空间。
+\end{definition}
+
+% 原文：theorem 1.7；来源：第01讲 线性代数基础/pages/page-0017.tex
+\begin{theorem}{秩与子矩阵}{mc-1-16}
+设 $A\in\R^{m\times n}$，$0\leq k\leq\min(m,n)$。$\rank A=k$ 当且仅当存在非奇异 $k$ 阶子矩阵，而所有 $k+1$ 阶子矩阵均奇异（$k=0$ 时即 $A=0$）。
+\end{theorem}
+
+% 原文：theorem 1.8；来源：第01讲 线性代数基础/pages/page-0017.tex
+\begin{theorem}{秩的基本性质}{mc-1-17}
+设 $A,B\in\R^{m\times n}$，$P\in\R^{m\times m}$、$Q\in\R^{n\times n}$ 非奇异，则
+\[
+\begin{gathered}
+\rank A\leq\min(m,n),\quad\rank A^{\mathsf T}=\rank A,\\
+\rank(A^{\mathsf T}A)=\rank(AA^{\mathsf T})=\rank A,\\
+\rank(A+B)\leq\rank A+\rank B,\\
+\rank(PA)=\rank(AQ)=\rank(PAQ)=\rank A.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：theorem 1.9；来源：第01讲 线性代数基础/pages/page-0017.tex
+\begin{theorem}{秩分解}{mc-1-18}
+设 $A\in\R^{m\times n}$，$\rank A=\ell$，则存在非奇异 $P\in\R^{m\times m}$、$Q\in\R^{n\times n}$ 使
+\[A=P\begin{bmatrix}I_\ell&0\\0&0\end{bmatrix}Q.\]
+同阶矩阵 $A,B$ 秩相等当且仅当存在这样的 $P,Q$ 使 $A=PBQ$。
+\end{theorem}
+
+% 原文：corollary 1.10；来源：第01讲 线性代数基础/pages/page-0017.tex
+\begin{corollary}{满秩分解}{mc-1-19}
+设 $A\in\R^{m\times n}$，$\rank A=\ell$，则存在列满秩 $F\in\R^{m\times\ell}$ 和行满秩 $G\in\R^{\ell\times n}$ 使 $A=FG$。
+\end{corollary}
+
+% 原文：theorem 1.11；来源：第01讲 线性代数基础/pages/page-0017.tex
+\begin{theorem}{Sylvester 秩不等式}{mc-1-20}
+设 $A\in\R^{m\times k}$、$B\in\R^{k\times n}$，则
+\[\rank A+\rank B-k\leq\rank(AB)\leq\min(\rank A,\rank B).\]
+\end{theorem}
+
+% 原文：corollary 1.12；来源：第01讲 线性代数基础/pages/page-0018.tex
+\begin{corollary}{满秩乘积}{mc-1-21}
+设 $A\in\R^{m\times k}$、$B\in\R^{k\times m}$，$k\leq m$，且二者满秩，则 $\rank(AB)=\rank A=\rank B=k$。对 $BA$，若另有 $\Ran A\cap\Ker B=\{0\}$，则 $\rank(BA)=k$。
+\end{corollary}
+
+% 原文：theorem 1.13；来源：第01讲 线性代数基础/pages/page-0018.tex
+\begin{theorem}{像、核及其维数}{mc-1-22}
+设 $A\in\R^{m\times n}$，则
+\[
+\begin{gathered}
+\dim\Ran A=\dim\Ran A^{\mathsf T}=\rank A,\\
+\dim\Ker A+\dim\Ran A^{\mathsf T}=n,\\
+\Ran(A^{\mathsf T}A)=\Ran A^{\mathsf T},\qquad\Ker(A^{\mathsf T}A)=\Ker A.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：definition 1.6；来源：第01讲 线性代数基础/pages/page-0019.tex
+\begin{definition}{特征值、特征向量与特征对}{mc-1-23}
+设 $A\in\R^{n\times n}$，$\lambda\in\C$，$0\ne x\in\C^n$。若 $Ax=\lambda x$，则 $\lambda$ 为特征值，$x$ 为对应的特征向量，$(\lambda,x)$ 为特征对。
+\end{definition}
+
+% 原文：definition 1.7；来源：第01讲 线性代数基础/pages/page-0020.tex
+\begin{definition}{特征多项式}{mc-1-24}
+设 $A\in\R^{n\times n}$。$p_A(\lambda)=\det(A-\lambda I)$ 为特征多项式，其复零点为特征值。特征值按代数重数计共 $n$ 个，集合记为谱 $\sigma(A)$。
+\end{definition}
+
+% 原文：theorem 1.14；来源：第01讲 线性代数基础/pages/page-0020.tex
+\begin{theorem}{Cayley--Hamilton 定理}{mc-1-25}
+设 $p_A$ 为 $A\in\R^{n\times n}$ 的特征多项式，则 $p_A(A)=0$。
+\end{theorem}
+
+% 原文：definition 1.8；来源：第01讲 线性代数基础/pages/page-0020.tex
+\begin{definition}{零化多项式与最小多项式}{mc-1-26}
+设 $A\in\R^{n\times n}$，满足 $p(A)=0$ 的非零多项式称为零化多项式；次数最低的首一零化多项式称为最小多项式。最小多项式存在唯一，次数不超过 $n$。
+\end{definition}
+
+% 原文：definition 1.9；来源：第01讲 线性代数基础/pages/page-0020.tex
+\begin{definition}{特征子空间与重数}{mc-1-27}
+设 $\lambda$ 为 $A$ 的特征值，$S_\lambda=\{x\in\C^n:Ax=\lambda x\}$ 为对应特征子空间。$\lambda$ 的代数重数是其作为特征多项式零点的重数，几何重数为 $\dim S_\lambda$；几何重数不超过代数重数。
+\end{definition}
+
+% 原文：definition 1.10；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{definition}{谱半径}{mc-1-28}
+设 $A\in\R^{n\times n}$ 或 $\C^{n\times n}$，$\rho(A)=\max_{\lambda\in\sigma(A)}|\lambda|$ 称为谱半径。
+\end{definition}
+
+% 原文：theorem 1.15；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{theorem}{特征值、行列式与迹}{mc-1-29}
+设 $A\in\R^{n\times n}$，特征值按重数为 $\lambda_1,\ldots,\lambda_n$，则
+\[\prod_{i=1}^n\lambda_i=\det A,\qquad\sum_{i=1}^n\lambda_i=\tr A=\sum_{i=1}^n a_{ii}.\]
+\end{theorem}
+
+% 原文：corollary 1.16；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{corollary}{相似矩阵的迹}{mc-1-30}
+若同阶方阵 $A,B$ 相似，则 $\tr A=\tr B$。
+\end{corollary}
+
+% 原文：definition 1.11；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{definition}{可对角化与谱分解}{mc-1-31}
+设 $A\in\R^{n\times n}$。若存在非奇异 $X\in\C^{n\times n}$ 使 $X^{-1}AX=\Lambda$ 为对角矩阵，则 $A$ 可对角化，此分解为特征值分解或谱分解；$\Lambda$ 的对角元为特征值。
+\end{definition}
+
+% 原文：theorem 1.17；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{theorem}{可对角化的判别}{mc-1-32}
+设 $A\in\R^{n\times n}$。$A$ 可对角化当且仅当有 $n$ 个线性无关特征向量，也当且仅当每个特征值的代数重数等于几何重数。若有 $n$ 个不同特征值，则 $A$ 可对角化。
+\end{theorem}
+
+% 原文：theorem 1.18；来源：第01讲 线性代数基础/pages/page-0021.tex
+\begin{theorem}{特征值的连续性}{mc-1-33}
+方阵的特征值作为按重数计的集合，随矩阵元素连续变化。
+\end{theorem}
+
+% 原文：theorem 1.19；来源：第01讲 线性代数基础/pages/page-0022.tex
+\begin{theorem}{Bendixson 估计}{mc-1-34}
+设 $A\in\C^{n\times n}$，$H=(A+A^*)/2$、$S=(A-A^*)/2$。对任意 $\lambda\in\sigma(A)$，
+\[
+\begin{aligned}
+\lambda_{\min}(H)&\leq\operatorname{Re}\lambda\leq\lambda_{\max}(H),\\
+\lambda_{\min}(-\mathrm i S)&\leq\operatorname{Im}\lambda\leq\lambda_{\max}(-\mathrm i S).
+\end{aligned}
+\]
+\end{theorem}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0022.tex
+\begin{definition}{Gerschgorin 圆盘}{mc-1-35}
+对 $A=[a_{ij}]\in\C^{n\times n}$，定义
+\[D_i=\Bigl\{z\in\C:|z-a_{ii}|\leq\sum_{j\ne i}|a_{ij}|\Bigr\},\quad i=1,\ldots,n.\]
+\end{definition}
+
+% 原文：theorem 1.20；来源：第01讲 线性代数基础/pages/page-0022.tex
+\begin{theorem}{Gerschgorin 圆盘定理}{mc-1-36}
+设 $A\in\C^{n\times n}$，则 $\sigma(A)\subseteq\bigcup_{i=1}^n D_i$。
+\end{theorem}
+
+% 原文：theorem 1.21；来源：第01讲 线性代数基础/pages/page-0023.tex
+\begin{theorem}{分离圆盘中的特征值数}{mc-1-37}
+设 $A\in\C^{n\times n}$，$\bigcup_iD_i=S\cup T$、$S\cap T=\varnothing$，其中 $S$ 由 $k$ 个圆盘组成，$T$ 由其余 $n-k$ 个组成。则 $S$ 恰含 $k$ 个特征值，$T$ 恰含其余 $n-k$ 个，重根按重数计。
+\end{theorem}
+
+% 原文：definition 1.12；来源：第01讲 线性代数基础/pages/page-0023.tex
+\begin{definition}{不变子空间}{mc-1-38}
+设 $A\in\R^{n\times n}$，子空间 $S\subseteq\R^n$。若 $AS\subseteq S$，即对全部 $x\in S$ 均有 $Ax\in S$，则 $S$ 为 $A$ 的不变子空间。
+\end{definition}
+
+% 原文：theorem 1.22；来源：第01讲 线性代数基础/pages/page-0023.tex, page-0037.tex
+\begin{theorem}{特征向量张成的不变子空间}{mc-1-39}
+$A$ 的 $m$ 个线性无关特征向量 $x_1,\ldots,x_m$ 张成一个 $m$ 维不变子空间。
+\end{theorem}
+
+% 原文：theorem 1.23；来源：第01讲 线性代数基础/pages/page-0023.tex, page-0037.tex
+\begin{theorem}{不变子空间的矩阵判别}{mc-1-40}
+设 $A\in\R^{n\times n}$、$X\in\R^{n\times k}$，$\rank X=k$。$\Ran X$ 为 $A$ 的不变子空间当且仅当存在 $B\in\R^{k\times k}$ 使 $AX=XB$；此时 $B$ 的特征值均为 $A$ 的特征值。
+\end{theorem}
+
+% 原文：corollary 1.24；来源：第01讲 线性代数基础/pages/page-0024.tex
+\begin{corollary}{限制矩阵的特征对}{mc-1-41}
+设 $A\in\R^{n\times n}$、$X\in\R^{n\times k}$，$\rank X=k$、$AX=XB$。则 $(\lambda,v)$ 为 $B$ 的特征对当且仅当 $(\lambda,Xv)$ 为 $A$ 的特征对。
+\end{corollary}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0024.tex, page-0026.tex
+\begin{definition}{投影变换}{mc-1-42}
+设 $S=S_1\oplus S_2$。将唯一分解 $x=x_1+x_2$ 映为 $Px=x_1$ 的线性变换称为沿 $S_2$ 到 $S_1$ 的投影。其矩阵为投影矩阵，$\Ran P=S_1$、$\Ker P=S_2$。沿 $S_1^\perp$ 投影时称为正交投影，记为 $P_{S_1}$；否则称为斜投影。
+\end{definition}
+
+% 原文：lemma 1.25；来源：第01讲 线性代数基础/pages/page-0025.tex
+\begin{lemma}{投影的直和分解}{mc-1-43}
+若 $P\in\R^{n\times n}$ 是投影矩阵，则 $\R^n=\Ran P\oplus\Ker P$。
+\end{lemma}
+
+% 原文：theorem 1.26；来源：第01讲 线性代数基础/pages/page-0025.tex
+\begin{theorem}{投影的唯一性}{mc-1-44}
+若 $\R^n=S_1\oplus S_2$，则存在唯一投影矩阵 $P$ 满足 $\Ran P=S_1$、$\Ker P=S_2$。对全部 $x\in\R^n$，$Px\in S_1$、$x-Px\in S_2$。
+\end{theorem}
+
+% 原文：lemma 1.27；来源：第01讲 线性代数基础/pages/page-0025.tex, page-0048.tex
+\begin{lemma}{补投影与转置}{mc-1-45}
+若 $P\in\R^{n\times n}$ 为投影矩阵，则 $I-P$ 与 $P^{\mathsf T}$ 也是投影矩阵，且 $\Ker P=\Ran(I-P)$。
+\end{lemma}
+
+% 原文：theorem 1.28；来源：第01讲 线性代数基础/pages/page-0025.tex
+\begin{theorem}{投影的幂等判别}{mc-1-46}
+$P\in\R^{n\times n}$ 为投影矩阵当且仅当 $P^2=P$。
+\end{theorem}
+
+% 原文：theorem 1.29；来源：第01讲 线性代数基础/pages/page-0026.tex
+\begin{theorem}{斜投影的基表示}{mc-1-47}
+设 $S_1,S_2\subseteq\R^n$ 均为 $m$ 维，$\R^n=S_1\oplus S_2^\perp$。$V=[v_1,\ldots,v_m]$、$W=[w_1,\ldots,w_m]$ 的列分别为二者的基。$\Ran P=S_1$、$\Ker P=S_2^\perp$ 的投影满足
+\[P=V(W^{\mathsf T}V)^{-1}W^{\mathsf T}.\]
+\end{theorem}
+
+% 原文：corollary 1.30；来源：第01讲 线性代数基础/pages/page-0026.tex
+\begin{corollary}{正交投影的基表示}{mc-1-48}
+若 $V$ 的列为 $S_1\subseteq\R^n$ 的标准正交基，则 $P_{S_1}=VV^{\mathsf T}$。
+\end{corollary}
+
+% 原文：theorem 1.31；来源：第01讲 线性代数基础/pages/page-0026.tex, page-0046.tex
+\begin{theorem}{正交投影的对称判别}{mc-1-49}
+投影矩阵 $P\in\R^{n\times n}$ 为正交投影当且仅当 $P^{\mathsf T}=P$。
+\end{theorem}
+
+\section{向量范数与矩阵范数}
+
+% 原文：definition 1.13；来源：第01讲 线性代数基础/pages/page-0027.tex
+\begin{definition}{向量范数与半范数}{mc-1-50}
+函数 $f:\F^n\to\R$ 满足对全部 $x,y\in\F^n$、$\alpha\in\F$，
+\[f(x)\geq0,\quad f(x)=0\iff x=0,\quad f(\alpha x)=|\alpha|f(x),\quad f(x+y)\leq f(x)+f(y)\]
+时称为范数，记 $\|x\|$。若第一条仅要求非负，其余两条不变，则为半范数。
+\end{definition}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0027.tex, page-0029.tex, page-0032.tex
+\begin{definition}{常见向量范数与内积导出范数}{mc-1-51}
+对 $x\in\F^n$，
+\[\|x\|_p=\Bigl(\sum_{i=1}^n|x_i|^p\Bigr)^{1/p}\ (1\leq p<\infty),\qquad\|x\|_\infty=\max_i|x_i|.\]
+内积空间上 $\|x\|=\sqrt{(x,x)}$ 为内积导出范数；标准内积导出 $2$-范数。$\|x\|_0$ 记非零分量个数，它不满足齐次性，因而不是范数。
+\end{definition}
+
+% 原文：theorem 1.32；来源：第01讲 线性代数基础/pages/page-0027.tex
+\begin{theorem}{范数的连续性}{mc-1-52}
+$\F^n$ 上任意向量范数 $\|\cdot\|$ 都使 $x\mapsto\|x\|$ 为连续函数。
+\end{theorem}
+
+% 原文：definition 1.14；来源：第01讲 线性代数基础/pages/page-0027.tex
+\begin{definition}{范数的等价性}{mc-1-53}
+若存在 $c_1,c_2>0$，使对全部 $x\in\F^n$ 有 $c_1\|x\|_\alpha\leq\|x\|_\beta\leq c_2\|x\|_\alpha$，则两个范数等价。
+\end{definition}
+
+% 原文：theorem 1.33；来源：第01讲 线性代数基础/pages/page-0027.tex
+\begin{theorem}{有限维范数等价}{mc-1-54}
+$\F^n$ 上所有向量范数等价，特别地
+\[
+\begin{gathered}
+\|x\|_2\leq\|x\|_1\leq\sqrt n\|x\|_2,\\
+\|x\|_\infty\leq\|x\|_1\leq n\|x\|_\infty,\\
+\|x\|_\infty\leq\|x\|_2\leq\sqrt n\|x\|_\infty.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：theorem 1.34；来源：第01讲 线性代数基础/pages/page-0029.tex
+\begin{theorem}{Cauchy--Schwarz 不等式}{mc-1-55}
+对 $\F^n$ 上的任意内积和任意 $x,y$，
+\[|(x,y)|^2\leq(x,x)(y,y),\qquad|(x,y)|\leq\|x\|\|y\|,\]
+其中范数由该内积导出；等号成立当且仅当 $x,y$ 线性相关。
+\end{theorem}
+
+% 原文：theorem 1.35；来源：第01讲 线性代数基础/pages/page-0029.tex
+\begin{theorem}{Hölder 不等式}{mc-1-56}
+在 $\F^n$ 的标准内积下，若 $p,q>1$、$1/p+1/q=1$，则 $|(x,y)|\leq\|x\|_p\|y\|_q$；端点 $p=1,q=\infty$ 或 $p=\infty,q=1$ 也成立。
+\end{theorem}
+
+% 原文：definition 1.15；来源：第01讲 线性代数基础/pages/page-0030.tex
+\begin{definition}{矩阵范数与相容性}{mc-1-57}
+函数 $f:\F^{m\times n}\to\R$ 满足非负正定性、绝对齐次性与三角不等式时称为矩阵范数。方阵范数若还满足 $\|AB\|\leq\|A\|\|B\|$，则为相容矩阵范数。若
+\[\|Ax\|_\alpha\leq\|A\|\|x\|_\beta\quad(\forall A,x),\]
+则称矩阵范数与作用于值域及定义域的向量范数相容。
+\end{definition}
+
+% 原文：lemma 1.36；来源：第01讲 线性代数基础/pages/page-0031.tex
+\begin{lemma}{算子范数}{mc-1-58}
+设 $\|\cdot\|$ 是 $\F^n$ 上的向量范数，
+\[\|A\|=\sup_{x\ne0}\frac{\|Ax\|}{\|x\|}=\max_{\|x\|=1}\|Ax\|\]
+为相容矩阵范数，称为算子范数、诱导范数或导出范数。矩形矩阵可用定义域、值域的两个向量范数作同样定义。
+\end{lemma}
+
+% 原文：lemma 1.37；来源：第01讲 线性代数基础/pages/page-0031.tex
+\begin{lemma}{常用矩阵范数}{mc-1-59}
+设 $A\in\F^{n\times n}$，则
+\[
+\begin{aligned}
+\|A\|_1&=\max_j\sum_i|a_{ij}|,&\|A\|_\infty&=\max_i\sum_j|a_{ij}|,\\
+\|A\|_2&=\sqrt{\rho(A^*A)},&\|A\|_F&=\sqrt{\tr(A^*A)}=\sqrt{\sum_{i,j}|a_{ij}|^2}.
+\end{aligned}
+\]
+\end{lemma}
+
+% 原文：theorem 1.38；来源：第01讲 线性代数基础/pages/page-0031.tex
+\begin{theorem}{矩阵范数的等价性}{mc-1-60}
+$\F^{n\times n}$ 上所有矩阵范数等价，特别地
+\[
+\begin{gathered}
+n^{-1/2}\|A\|_1\leq\|A\|_2\leq\sqrt n\|A\|_1,\\
+n^{-1/2}\|A\|_\infty\leq\|A\|_2\leq\sqrt n\|A\|_\infty.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第01讲 线性代数基础/pages/page-0032.tex
+\begin{proposition}{矩阵范数的性质}{mc-1-61}
+对维数相容的矩阵与向量：相容范数满足 $\|A^k\|\leq\|A\|^k$；算子范数满足 $\|Ax\|\leq\|A\|\|x\|$、$\|AB\|\leq\|A\|\|B\|$。
+\[
+\begin{gathered}
+\|Ax\|_2\leq\|A\|_F\|x\|_2,\quad\|AB\|_F\leq\|A\|_F\|B\|_F,\\
+\|UAV\|_2=\|A\|_2,\quad\|UAV\|_F=\|A\|_F\quad(U,V\text{ 酉}),\\
+\|A^*\|_2=\|A\|_2,\quad\|A^*\|_1=\|A\|_\infty.
+\end{gathered}
+\]
+正规矩阵满足 $\|A\|_2=\rho(A)$。$n>1$ 时 $F$-范数不是由同一向量范数诱导的算子范数。
+\end{proposition}
+
+% 原文：definition 无编号；来源：第01讲 线性代数基础/pages/page-0032.tex
+\begin{definition}{核范数与矩阵直和}{mc-1-62}
+设 $A\in\F^{m\times n}$，核范数 $\|A\|_* =\sum_i\sigma_i(A)=\tr\sqrt{A^*A}$。方阵 $A_i$ 的直和是块对角矩阵 $\bigoplus_{i=1}^kA_i=\diag(A_1,\ldots,A_k)$，且
+\[\Bigl\|\bigoplus_{i=1}^kA_i\Bigr\|_p=\max_i\|A_i\|_p,\quad p=1,2,\infty.\]
+\end{definition}
+
+% 原文：theorem 1.39；来源：第01讲 线性代数基础/pages/page-0033.tex
+\begin{theorem}{谱半径与范数}{mc-1-63}
+设 $A\in\F^{n\times n}$。任意算子范数满足 $\rho(A)\leq\|A\|$。对任意 $\varepsilon>0$，存在依赖于 $A,\varepsilon$ 的算子范数使 $\|A\|_\varepsilon\leq\rho(A)+\varepsilon$；故 $\rho(A)<1$ 时可取 $\|A\|_\varepsilon<1$。
+\end{theorem}
+
+% 原文：corollary 1.40；来源：第01讲 线性代数基础/pages/page-0033.tex
+\begin{corollary}{二范数的估计}{mc-1-64}
+设 $A\in\F^{n\times n}$，则
+\[\|A\|_2^2\leq\|A\|_1\|A\|_\infty,\qquad\max_{i,j}|a_{ij}|\leq\|A\|_2\leq n\max_{i,j}|a_{ij}|.\]
+\end{corollary}
+
+% 原文：theorem 1.41；来源：第01讲 线性代数基础/pages/page-0034.tex
+\begin{theorem}{正交投影的范数与勾股关系}{mc-1-65}
+设 $P\in\F^{n\times n}$ 为正交投影。若 $P\ne0$，则 $\|P\|_2=1$；若 $P=0$ 则范数为 $0$。对全部 $x\in\F^n$，
+\[\|x\|_2^2=\|Px\|_2^2+\|(I-P)x\|_2^2.\]
+\end{theorem}
+
+% 原文：theorem 1.42；来源：第01讲 线性代数基础/pages/page-0034.tex, page-0046.tex
+\begin{theorem}{最佳逼近}{mc-1-66}
+设 $S\subseteq\F^n$ 为子空间，$z\in\F^n$。$\min_{x\in S}\|x-z\|_2$ 的唯一解为 $x_*=P_Sz$。
+\end{theorem}
+
+% 原文：corollary 1.43；来源：第01讲 线性代数基础/pages/page-0034.tex, page-0046.tex
+\begin{corollary}{能量范数下的最佳逼近}{mc-1-67}
+设 $A\in\F^{n\times n}$ 对称正定或 Hermite 正定，$S\subseteq\F^n$ 为子空间，$z\in\F^n$。定义 $\|w\|_A=\sqrt{w^*Aw}$。$x_*$ 为 $\min_{x\in S}\|x-z\|_A$ 的解当且仅当 $x_*\in S$ 且 $A(x_*-z)\perp S$。
+\end{corollary}
+
+\section{矩阵标准型}
+
+% 原文：theorem 1.44；来源：第01讲 线性代数基础/pages/page-0035.tex
+\begin{theorem}{Jordan 标准型}{mc-1-68}
+设 $A\in\F^{n\times n}$ 有不同特征值 $\lambda_1,\ldots,\lambda_p$。存在非奇异 $X\in\C^{n\times n}$ 使
+\[X^{-1}AX=\bigoplus_{i=1}^p J_i,\qquad J_i=\bigoplus_{k=1}^{\nu_i}J_i^{(k)},\qquad
+J_i^{(k)}=\begin{bmatrix}\lambda_i&1&&\\&\ddots&\ddots&\\&&\lambda_i&1\\&&&\lambda_i\end{bmatrix}.\]
+$J_i$ 的阶数等于 $\lambda_i$ 的代数重数，块数 $\nu_i$ 等于几何重数。除块排列次序外 Jordan 型唯一；所有块为一阶当且仅当 $A$ 可对角化。每块对应列满秩 $X_i^{(k)}$ 使 $AX_i^{(k)}=X_i^{(k)}J_i^{(k)}$。
+\end{theorem}
+
+% 原文：corollary 1.45；来源：第01讲 线性代数基础/pages/page-0035.tex
+\begin{corollary}{可对角化矩阵的稠密性}{mc-1-69}
+在复方阵空间中，可对角化矩阵组成稠密集，任意矩阵可由可对角化矩阵逼近。
+\end{corollary}
+
+% 原文：theorem 1.46；来源：第01讲 线性代数基础/pages/page-0020.tex, page-0035.tex
+\begin{theorem}{最小多项式与 Jordan 块}{mc-1-70}
+设 $\lambda_1,\ldots,\lambda_p$ 为 $A\in\C^{n\times n}$ 的不同特征值，$r_i$ 为对应最大 Jordan 块的阶数。最小多项式为
+\[p_A^{\min}(\lambda)=\prod_{i=1}^p(\lambda-\lambda_i)^{r_i}.\]
+\end{theorem}
+
+% 原文：theorem 1.47；来源：第01讲 线性代数基础/pages/page-0036.tex, page-0037.tex
+\begin{theorem}{Schur 分解}{mc-1-71}
+设 $A\in\F^{n\times n}$。存在酉 $U\in\C^{n\times n}$ 使 $U^*AU=R$ 为上三角矩阵，即 $A=URU^*$；$R$ 的对角元为 $A$ 的特征值，可按任意指定顺序排列。
+\end{theorem}
+
+% 原文：corollary 1.48；来源：第01讲 线性代数基础/pages/page-0037.tex
+\begin{corollary}{正规矩阵与 Hermite 矩阵}{mc-1-72}
+设 $A\in\C^{n\times n}$，$U^*AU=R$ 为 Schur 分解。$A$ 正规当且仅当 $R$ 对角，亦即 $A$ 可酉对角化；$A$ 为 Hermite 矩阵当且仅当 $R$ 为实对角矩阵。
+\end{corollary}
+
+% 原文：theorem 1.49；来源：第01讲 线性代数基础/pages/page-0037.tex
+\begin{theorem}{实 Schur 分解}{mc-1-73}
+设 $A\in\R^{n\times n}$。存在正交 $Q\in\R^{n\times n}$ 使 $Q^{\mathsf T}AQ=T$ 为拟上三角矩阵；对角块为一阶实特征值，或二阶块（其特征值为共轭复特征值）。
+\end{theorem}
+
+\section{几类特殊矩阵}
+
+% 原文：definition 1.16；来源：第01讲 线性代数基础/pages/page-0038.tex
+\begin{definition}{正定与半正定}{mc-1-74}
+设 $A\in\C^{n\times n}$。对全部 $x\in\C^n$，$\operatorname{Re}(x^*Ax)\geq0$ 时为半正定；对全部 $x\ne0$ 严格大于零时为正定。若还满足 $A^*=A$，则为 Hermite（半）正定。实对称情形为对称（半）正定。$-A$（半）正定时称 $A$（半）负定。本讲义的正定、半正定不预设 Hermite 性。
+\end{definition}
+
+% 原文：theorem 1.50；来源：第01讲 线性代数基础/pages/page-0038.tex, page-0046.tex
+\begin{theorem}{Hermite 部分的正定性}{mc-1-75}
+设 $A\in\C^{n\times n}$，$H=(A+A^*)/2$。$A$ 正定或半正定当且仅当 $H$ 正定或半正定。
+\end{theorem}
+
+% 原文：theorem 1.51；来源：第01讲 线性代数基础/pages/page-0038.tex, page-0046.tex
+\begin{theorem}{实矩阵的正定判别}{mc-1-76}
+设 $A\in\R^{n\times n}$。$A$ 正定当且仅当对全部非零实向量 $x$ 有 $x^{\mathsf T}Ax>0$；半正定情形将 $>$ 换为 $\geq$。
+\end{theorem}
+
+% 原文：proposition 无编号；来源：第01讲 线性代数基础/pages/page-0038.tex
+\begin{proposition}{Hermite 正定矩阵的性质}{mc-1-77}
+对 $A\in\C^{n\times n}$：
+\begin{enumerate}
+\item $A$ Hermite 正定当且仅当 $A$ Hermite 且全部特征值为正。
+\item 等价地 $A=U\Lambda U^*$，$U$ 酉且 $\Lambda$ 为正实对角矩阵。
+\item 对任意非奇异 $S$，$A$ Hermite 正定当且仅当 $S^*AS$ Hermite 正定。
+\item 任意主子矩阵均 Hermite 正定；对角元为正，$|a_{ij}|<\max_k a_{kk}$（$i\ne j$）。
+\end{enumerate}
+实数域的对应结论成立。
+\end{proposition}
+
+% 原文：theorem 1.52；来源：第01讲 线性代数基础/pages/page-0039.tex
+\begin{theorem}{半正定矩阵的根}{mc-1-78}
+设 $A\in\C^{n\times n}$ Hermite 半正定，$k$ 为正整数。存在唯一 Hermite 半正定 $B$ 使 $B^k=A$；$\rank B=\rank A$，故 $A$ 正定时 $B$ 正定。$A$ 为实矩阵时 $B$ 也为实矩阵。$k=2$ 时记 $B=A^{1/2}$。
+\end{theorem}
+
+% 原文：theorem 1.53；来源：第01讲 线性代数基础/pages/page-0039.tex, page-0047.tex
+\begin{theorem}{内积与正定矩阵}{mc-1-79}
+$\C^n$ 上任意内积（第一变量线性）可唯一写为 $(x,y)=y^*Ax$，$A$ 为 Hermite 正定矩阵；反之任意这样的 $A$ 定义一个内积。实数域对应结论成立。
+\end{theorem}
+
+% 原文：definition 1.17；来源：第01讲 线性代数基础/pages/page-0039.tex
+\begin{definition}{对角占优}{mc-1-80}
+若 $A=[a_{ij}]\in\C^{n\times n}$ 满足 $|a_{ii}|\geq\sum_{j\ne i}|a_{ij}|$（全部 $i$），且至少一处严格，则本讲义称其弱行对角占优；全部严格时为严格行对角占优。对列作同样定义。
+\end{definition}
+
+% 原文：theorem 1.54；来源：第01讲 线性代数基础/pages/page-0039.tex
+\begin{theorem}{严格对角占优的非奇异性}{mc-1-81}
+严格对角占优方阵 $A\in\C^{n\times n}$ 非奇异。
+\end{theorem}
+
+% 原文：theorem 1.55；来源：第01讲 线性代数基础/pages/page-0040.tex
+\begin{theorem}{逆矩阵的一范数界}{mc-1-82}
+设 $A\in\R^{n\times n}$ 严格列对角占优，
+\[\delta=\min_j\Bigl(|a_{jj}|-\sum_{i\ne j}|a_{ij}|\Bigr)>0.\]
+则 $\|A^{-1}\|_1\leq\delta^{-1}$。
+\end{theorem}
+
+% 原文：definition 1.18；来源：第01讲 线性代数基础/pages/page-0040.tex
+\begin{definition}{可约与不可约矩阵}{mc-1-83}
+设 $A\in\C^{n\times n}$。若存在置换矩阵 $P$ 使
+\[PAP^{\mathsf T}=\begin{bmatrix}A_{11}&A_{12}\\0&A_{22}\end{bmatrix},\quad A_{11}\in\C^{k\times k},\quad1\leq k<n,\]
+则称 $A$ 可约，否则不可约。讲义对一阶情形另约定：非零时不可约。
+\end{definition}
+
+% 原文：corollary 1.56；来源：第01讲 线性代数基础/pages/page-0041.tex
+\begin{corollary}{对角扰动与不可约性}{mc-1-84}
+设 $A\in\C^{n\times n}$ 不可约，$n\geq2$，$D$ 任意对角矩阵，则 $A+D$ 不可约；特别地 $A-\diag(a_{11},\ldots,a_{nn})$ 不可约。
+\end{corollary}
+
+% 原文：theorem 1.57；来源：第01讲 线性代数基础/pages/page-0041.tex
+\begin{theorem}{幂与可约性}{mc-1-85}
+设 $A\in\C^{n\times n}$。若 $A$ 可约，则每个正整数次幂 $A^k$ 可约；若某个 $A^k$ 不可约，则 $A$ 不可约。
+\end{theorem}
+
+% 原文：theorem 1.58；来源：第01讲 线性代数基础/pages/page-0041.tex
+\begin{theorem}{可约性的指标判别}{mc-1-86}
+设 $A=[a_{ij}]\in\C^{n\times n}$，$n\geq2$。$A$ 可约当且仅当存在非空不交指标集 $\mathcal S,\mathcal T$，$\mathcal S\cup\mathcal T=\{1,\ldots,n\}$，满足 $a_{ij}=0$（全部 $i\in\mathcal S,j\in\mathcal T$）。
+\end{theorem}
+
+% 原文：theorem 1.59；来源：第01讲 线性代数基础/pages/page-0042.tex
+\begin{theorem}{可约性的路径判别}{mc-1-87}
+设 $A=[a_{ij}]\in\C^{n\times n}$，$n\geq2$。$A$ 可约当且仅当存在不同指标 $k,l$，使从 $k$ 到 $l$ 的每条指标路径乘积均为零：$a_{ki_1}a_{i_1i_2}\cdots a_{i_rl}=0$（包括长度一的路径）。等价地，$A$ 不可约当且仅当其有向图强连通。
+\end{theorem}
+
+% 原文：theorem 1.60；来源：第01讲 线性代数基础/pages/page-0042.tex, page-0046.tex
+\begin{theorem}{不可约弱对角占优的非奇异性}{mc-1-88}
+若 $A\in\C^{n\times n}$ 不可约，且按教材原定义 1.17 弱对角占优（至少一行严格），则 $A$ 非奇异。
+\end{theorem}
+
+\section{Kronecker 积}
+
+% 原文：definition 1.19；来源：第01讲 线性代数基础/pages/page-0043.tex
+\begin{definition}{Kronecker 积}{mc-1-89}
+设 $A=[a_{ij}]\in\R^{m\times n}$、$B\in\R^{p\times q}$，
+\[A\otimes B=[a_{ij}B]_{i=1,j=1}^{m,n}\in\R^{mp\times nq}.\]
+此运算又称直积或张量积。
+\end{definition}
+
+% 原文：theorem 1.61；来源：第01讲 线性代数基础/pages/page-0043.tex
+\begin{theorem}{交换两因子的置换相似}{mc-1-90}
+设 $A\in\C^{m\times m}$、$B\in\C^{n\times n}$，存在 $mn$ 阶置换矩阵 $P$ 使 $P^{\mathsf T}(A\otimes B)P=B\otimes A$。
+\end{theorem}
+
+% 原文：theorem 1.62；来源：第01讲 线性代数基础/pages/page-0043.tex
+\begin{theorem}{Kronecker 积的运算性质}{mc-1-91}
+下式涉及的矩阵均须维数相容，$\alpha\in\R$：
+\[
+\begin{gathered}
+(\alpha A)\otimes B=A\otimes(\alpha B)=\alpha(A\otimes B),\\
+(A\otimes B)^{\mathsf T}=A^{\mathsf T}\otimes B^{\mathsf T},\quad(A\otimes B)^*=A^*\otimes B^*,\\
+(A\otimes B)\otimes C=A\otimes(B\otimes C),\\
+(A+B)\otimes C=A\otimes C+B\otimes C,\\
+A\otimes(B+C)=A\otimes B+A\otimes C,\\
+(A\otimes B)(C\otimes D)=AC\otimes BD,\\
+\Bigl(\bigotimes_{i=1}^kA_i\Bigr)\Bigl(\bigotimes_{i=1}^kB_i\Bigr)=\bigotimes_{i=1}^k(A_iB_i),\\
+\prod_{i=1}^k(A_i\otimes B_i)=\Bigl(\prod_{i=1}^kA_i\Bigr)\otimes\Bigl(\prod_{i=1}^kB_i\Bigr),\\
+\rank(A\otimes B)=\rank A\rank B.
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：corollary 1.63；来源：第01讲 线性代数基础/pages/page-0043.tex
+\begin{corollary}{Kronecker 积的谱分解}{mc-1-92}
+设 $A=Q_1\Lambda_1Q_1^{-1}\in\C^{m\times m}$、$B=Q_2\Lambda_2Q_2^{-1}\in\C^{n\times n}$ 为特征值分解，则
+\[A\otimes B=(Q_1\otimes Q_2)(\Lambda_1\otimes\Lambda_2)(Q_1\otimes Q_2)^{-1}.\]
+\end{corollary}
+
+% 原文：theorem 1.64；来源：第01讲 线性代数基础/pages/page-0043.tex
+\begin{theorem}{Kronecker 积的特征对}{mc-1-93}
+设 $A\in\R^{m\times m}$、$B\in\R^{n\times n}$，其特征对分别为 $(\lambda,x)$、$(\mu,y)$。则 $(\lambda\mu,x\otimes y)$ 为 $A\otimes B$ 的特征对；$A\otimes B$ 与 $B\otimes A$ 同谱。
+\end{theorem}
+
+% 原文：corollary 1.65；来源：第01讲 线性代数基础/pages/page-0044.tex
+\begin{corollary}{Kronecker 和的谱}{mc-1-94}
+设 $A\in\C^{m\times m}$、$B\in\C^{n\times n}$，则 $A\otimes I_n+I_m\otimes B$ 的特征值为全部 $\lambda_i(A)+\lambda_j(B)$。
+\end{corollary}
+
+% 原文：theorem 1.66；来源：第01讲 线性代数基础/pages/page-0044.tex
+\begin{theorem}{迹、行列式与逆}{mc-1-95}
+设 $A\in\R^{m\times m}$、$B\in\R^{n\times n}$，则
+\[\tr(A\otimes B)=\tr A\tr B,\qquad\det(A\otimes B)=(\det A)^n(\det B)^m.\]
+若二者均非奇异，则 $(A\otimes B)^{-1}=A^{-1}\otimes B^{-1}$。
+\end{theorem}
+
+% 原文：theorem 1.67；来源：第01讲 线性代数基础/pages/page-0044.tex
+\begin{theorem}{向量化恒等式}{mc-1-96}
+设 $X=[x_1,\ldots,x_n]\in\R^{m\times n}$，定义按列向量化 $\vecop(X)=[x_1^{\mathsf T},\ldots,x_n^{\mathsf T}]^{\mathsf T}$。对维数相容的 $A,B$，
+\[
+\begin{gathered}
+\vecop(AX)=(I\otimes A)\vecop X,\qquad\vecop(XB)=(B^{\mathsf T}\otimes I)\vecop X,\\
+(A\otimes B)\vecop X=\vecop(BXA^{\mathsf T}).
+\end{gathered}
+\]
+\end{theorem}
+
+% 原文：theorem 1.68；来源：第01讲 线性代数基础/pages/page-0044.tex
+\begin{theorem}{矩阵方程的向量化}{mc-1-97}
+设 $A\in\R^{m\times m}$、$B\in\R^{n\times n}$、$X,D\in\R^{m\times n}$，则 $AX+XB=D$ 等价于
+\[(I_n\otimes A+B^{\mathsf T}\otimes I_m)\vecop X=\vecop D.\]
+\end{theorem}
